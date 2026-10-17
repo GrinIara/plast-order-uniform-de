@@ -3,6 +3,17 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    # Зміни лише в docs/ чи README сайт не перебудовують. Розклад і ручний запуск фільтру не мають.
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package*.json'
+      - 'vite.config.ts'
+      - 'tsconfig.json'
+      - 'config.example.json'
+      - 'scripts/**'
+      - '.github/workflows/**'
   schedule:
     - cron: '17 5 * * *' # щодня: оновити знімок каталогу й перебудувати
   workflow_dispatch:
