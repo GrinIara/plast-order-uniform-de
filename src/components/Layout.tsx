@@ -3,7 +3,7 @@ import { useCart } from '../lib/cart';
 import { t } from '../lib/i18n';
 import { useLive } from '../lib/live';
 import type { Theme } from '../lib/theme';
-import { itemsWord } from '../lib/ui';
+import { formatDate, itemsWord } from '../lib/ui';
 
 interface Props {
   station: string | null;
@@ -47,7 +47,7 @@ export function Layout({ station, dataDate, theme, onToggleTheme, children }: Pr
 
       <footer className="footer">
         <div className="footer__inner">
-          {dataDate && <span>{t('footer.dataDate', { date: dataDate })}</span>}
+          {dataDate && <span>{t('footer.dataDate', { date: formatDate(dataDate) })}</span>}
           <nav aria-label={t('nav.footer')} className="footer__nav">
             <a href="#/impressum">{t('footer.impressum')}</a>
             <a href="#/datenschutz">{t('footer.privacy')}</a>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { t } from '../lib/i18n';
-import { categoryTint } from '../lib/ui';
+import { categoryTint, formatDate } from '../lib/ui';
 import { groupByCategory } from '../lib/search';
 import type { LoadedCatalog } from '../lib/data';
 import { ProductCard } from './ProductCard';
@@ -107,7 +107,7 @@ export function CatalogPage({ status, catalog, onRetry }: Props) {
           <span aria-hidden="true" className="notice__icon">
             i
           </span>
-          <span>{t('catalog.fallback', { date: catalog.dataDate ?? '' })}</span>
+          <span>{t('catalog.fallback', { date: formatDate(catalog.dataDate ?? '') })}</span>
         </div>
       )}
       {ready && catalog.errors.length > 0 && <p className="muted-text">{t('catalog.partial')}</p>}

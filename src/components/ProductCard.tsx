@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { addToCart, removeFromCart, useCart } from '../lib/cart';
 import { t } from '../lib/i18n';
 import { announce } from '../lib/live';
-import { categoryMark } from '../lib/ui';
+import { categoryMark, formatDate } from '../lib/ui';
 import type { Product } from '../lib/types';
 
 function formatPrice(price: number): string {
@@ -55,7 +55,7 @@ export function ProductCard({ product, tint }: { product: Product; tint: string 
           )}
           {priced?.price != null && (
             <div className="card__price">
-              <strong>{formatPrice(priced.price)}</strong> <span className="muted">{t('card.priceDate', { date: priced.updatedAt })}</span>
+              <strong>{formatPrice(priced.price)}</strong> <span className="muted">{t('card.priceDate', { date: formatDate(priced.updatedAt) })}</span>
             </div>
           )}
         </div>

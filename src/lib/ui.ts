@@ -15,3 +15,9 @@ export function categoryTint(index: number): string {
 export function categoryMark(category: string): string {
   return category.replace(/[^\p{L}]/gu, '').slice(0, 2).toUpperCase();
 }
+
+/** РРРР-ММ-ДД → ДД.ММ.РРРР (інші значення повертає без змін). */
+export function formatDate(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : iso;
+}
