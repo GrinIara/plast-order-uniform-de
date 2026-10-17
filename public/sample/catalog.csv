@@ -1,0 +1,6 @@
+product_id,sku,name_uk,name_de,category,synonyms,size,stock,price,source_url,updated_at
+UPP-SHIRT,UPP-SHIRT-S,Сорочка УПП,UPP-Hemd,Сорочки,"УПП, повсякденна, сорочка",S,,24.90,https://scoutstyle.net/,2026-10-01
+UPP-SHIRT,UPP-SHIRT-M,Сорочка УПП,UPP-Hemd,Сорочки,"УПП, повсякденна, сорочка",M,під замовлення,24.90,https://scoutstyle.net/,2026-10-01
+UPP-SHIRT,UPP-SHIRT-L,Сорочка УПП,UPP-Hemd,Сорочки,"УПП, повсякденна, сорочка",L,немає,24.90,https://scoutstyle.net/,2026-10-01
+UPP-CAP,UPP-CAP-ONE,Пілотка,Schiffchen,Головні убори,"УПП, пілотка, шапка",one size,,,https://scoutstyle.net/,2026-10-03
+KRAVAT,KRAVAT-ONE,Пластова хустка,Halstuch,Аксесуари,"хустка, краватка",one size,,6.50,https://scoutstyle.net/,2026-09-20

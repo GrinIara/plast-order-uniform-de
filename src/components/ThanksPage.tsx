@@ -1,0 +1,28 @@
+import { t } from '../lib/i18n';
+import { getLastOrder } from '../lib/lastOrder';
+import { itemsWord } from '../lib/ui';
+import type { Settings } from '../lib/types';
+import { PaymentDetails } from './PaymentDetails';
+
+export function ThanksPage({ settings }: { settings: Settings }) {
+  const last = getLastOrder();
+  return (
+    <div className="stack narrow">
+      <div className="stack stack--xs thanks">
+        <span aria-hidden="true" className="thanks__icon">
+          ✓
+        </span>
+        <h1 className="h1">{t('thanks.title')}</h1>
+        <p className="muted-text">{last ? t('thanks.summary', { count: last.count, unit: itemsWord(last.count), phone: last.phone }) : t('thanks.summaryDefault')}</p>
+      </div>
+      <section className="panel">
+        <h2 className="panel__title">{t('thanks.nextTitle')}</h2>
+        <p>{t('thanks.nextText')}</p>
+      </section>
+      <PaymentDetails settings={settings} variant="thanks" personName={last?.name} />
+      <a className="btn btn--primary btn--xl" href="#/">
+        {t('thanks.back')}
+      </a>
+    </div>
+  );
+}

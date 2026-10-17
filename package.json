@@ -1,0 +1,39 @@
+{
+  "name": "plast-order-uniform-de",
+  "private": true,
+  "version": "1.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx scripts/write-config.ts && vite",
+    "config": "tsx scripts/write-config.ts",
+    "snapshot": "tsx scripts/fetch-catalog.ts",
+    "validate:catalog": "tsx scripts/fetch-catalog.ts --strict",
+    "check:links": "tsx scripts/check-links.ts",
+    "build": "tsx scripts/write-config.ts && tsx scripts/fetch-catalog.ts && tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit && tsx scripts/check-i18n.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource/onest": "^5.1.0",
+    "minisearch": "^7.1.0",
+    "papaparse": "^5.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/node": "^22.0.0",
+    "@types/papaparse": "^5.3.14",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "jsdom": "^25.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vite": "^7.3.7",
+    "vitest": "^3.2.7"
+  }
+}

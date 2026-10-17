@@ -1,0 +1,39 @@
+name: Check source links
+
+on:
+  schedule:
+    - cron: '43 6 * * 1' # щопонеділка
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Snapshot catalog
+        run: |
+          npm run config
+          npm run snapshot
+        env:
+          REQUIRE_CONFIG: '1'
+          SITE_CONFIG: ${{ vars.SITE_CONFIG }}
+      - name: Check links
+        id: links
+        run: npm run check:links 2>&1 | tee links.log
+      - name: Open issue on broken links
+        if: failure() && steps.links.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Биті посилання на scoutstyle.net ($(date +%F))" \
+            --body "$(printf '```\n%s\n```\n' "$(cat links.log)")"
