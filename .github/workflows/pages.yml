@@ -1,0 +1,89 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 5 * * *' # щодня: оновити знімок каталогу й перебудувати
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: npm run build
+        env:
+          REQUIRE_CONFIG: '1'
+          SITE_CONFIG: ${{ vars.SITE_CONFIG }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  # Сувора перевірка таблиці: деплой не блокує, але при помилках відкриває issue
+  # (сповіщення отримують спостерігачі репозиторію). Також не дає розкладу вимкнутись.
+  validate-data:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Validate catalog (strict)
+        id: validate
+        run: |
+          npm run config
+          npm run validate:catalog 2>&1 | tee validate.log
+        env:
+          REQUIRE_CONFIG: '1'
+          SITE_CONFIG: ${{ vars.SITE_CONFIG }}
+      - name: Open issue on invalid rows
+        if: failure() && steps.validate.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Каталог: некоректні рядки ($(date +%F))" \
+            --body "$(printf 'Перевірка таблиці каталогу знайшла помилки. Сайт працює, але ці рядки пропущено.\n\n```\n%s\n```\n' "$(cat validate.log)")"
+      - name: Keep scheduled workflow enabled
+        if: always() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/$GITHUB_REPOSITORY/actions/workflows/pages.yml/enable"

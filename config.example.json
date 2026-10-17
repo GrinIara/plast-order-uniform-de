@@ -1,0 +1,24 @@
+{
+  "station": "Düsseldorf",
+  "basePath": "/",
+  "csv": {
+    "catalog": "sample/catalog.csv",
+    "synonyms": "sample/synonyms.csv",
+    "settings": "sample/settings.csv"
+  },
+  "form": {
+    "action": "",
+    "fields": {
+      "firstName": "entry.111",
+      "lastName": "entry.222",
+      "phone": "entry.333",
+      "station": "entry.444",
+      "uladh": "entry.777",
+      "unit": "entry.888",
+      "order": "entry.555",
+      "consent": "entry.666"
+    },
+    "consentValue": "Так"
+  },
+  "coordinators": [{ "name": "Імʼя Прізвище", "phone": "+49 151 0000000", "email": "koordynator@example.org" }]
+}
