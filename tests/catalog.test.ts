@@ -87,3 +87,15 @@ describe('normalizeDate', () => {
     expect(normalizeDate('')).toBeNull();
   });
 });
+
+describe('parseCatalogCsv: заголовок', () => {
+  it('замість помилки на кожному рядку дає одну про відсутні колонки', () => {
+    const broken = csv.replace('updated_at', 'РРРР-ММ-ДД.');
+    const { rows, errors } = parseCatalogCsv(broken);
+    expect(rows).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+    expect(errors[0].row).toBe(1);
+    expect(errors[0].message).toContain('updated_at');
+    expect(errors[0].message).toContain('РРРР-ММ-ДД.');
+  });
+});

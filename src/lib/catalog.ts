@@ -46,13 +46,19 @@ export function normalizeDate(value: string): string | null {
   return null;
 }
 
-function parseCsv(text: string): Record<string, string>[] {
+const REQUIRED_COLUMNS = ['product_id', 'sku', 'name_uk', 'category', 'size', 'source_url', 'updated_at'];
+
+function parseCsvWithHeaders(text: string): { data: Record<string, string>[]; fields: string[] } {
   const result = Papa.parse<Record<string, string>>(text.replace(/^﻿/, ''), {
     header: true,
     skipEmptyLines: 'greedy',
     transformHeader: (h) => h.trim(),
   });
-  return result.data;
+  return { data: result.data, fields: result.meta.fields ?? [] };
+}
+
+function parseCsv(text: string): Record<string, string>[] {
+  return parseCsvWithHeaders(text).data;
 }
 
 export function parseCatalogCsv(text: string): { rows: CatalogRow[]; errors: RowError[] } {
@@ -60,7 +66,15 @@ export function parseCatalogCsv(text: string): { rows: CatalogRow[]; errors: Row
   const errors: RowError[] = [];
   const seen = new Set<string>();
 
-  parseCsv(text).forEach((raw, index) => {
+  const { data, fields } = parseCsvWithHeaders(text);
+  const missing = REQUIRED_COLUMNS.filter((c) => !fields.includes(c));
+  if (missing.length > 0) {
+    const found = fields.length > 0 ? fields.join(', ') : 'немає';
+    errors.push({ row: 1, message: `у заголовку таблиці відсутні колонки: ${missing.join(', ')} (знайдено: ${found})` });
+    return { rows, errors };
+  }
+
+  data.forEach((raw, index) => {
     const rowNumber = index + 2;
     const parsed = rowSchema.safeParse(raw);
     if (!parsed.success) {
