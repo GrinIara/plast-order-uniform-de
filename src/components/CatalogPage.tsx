@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { t } from '../lib/i18n';
+import { ULADS, type Uladh } from '../lib/types';
 import { categoryTint, formatDate } from '../lib/ui';
 import { groupByCategory } from '../lib/search';
 import type { LoadedCatalog } from '../lib/data';
@@ -42,16 +43,17 @@ export function CatalogPage({ status, catalog, onRetry }: Props) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [size, setSize] = useState<string | null>(null);
+  const [uladh, setUladh] = useState<Uladh | null>(null);
 
   const categories = useMemo(
     () => [...new Set(catalog?.products.map((p) => p.category) ?? [])].sort((a, b) => a.localeCompare(b, 'uk')),
     [catalog],
   );
   const sizes = useMemo(() => [...new Set(catalog?.products.flatMap((p) => p.variants.map((v) => v.size)) ?? [])], [catalog]);
-  const results = useMemo(() => catalog?.search.search({ query, category, size }) ?? [], [catalog, query, category, size]);
+  const results = useMemo(() => catalog?.search.search({ query, category, size, uladh }) ?? [], [catalog, query, category, size, uladh]);
   const groups = useMemo(() => groupByCategory(results), [results]);
   const ready = status === 'ready' && catalog !== null;
-  const filtered = query.trim() !== '' || category !== null || size !== null;
+  const filtered = query.trim() !== '' || category !== null || size !== null || uladh !== null;
 
   const pickCategory = (c: string | null) => () => {
     setCategory(c);
@@ -78,6 +80,14 @@ export function CatalogPage({ status, catalog, onRetry }: Props) {
           {[null, ...categories].map((c) => (
             <button key={c ?? 'all'} type="button" className={`chip${category === c ? ' is-on' : ''}`} aria-pressed={category === c} onClick={pickCategory(c)}>
               {c ?? t('search.all')}
+            </button>
+          ))}
+        </div>
+
+        <div role="group" aria-label={t('search.ulads')} className="chips">
+          {[null, ...ULADS].map((u) => (
+            <button key={u ?? 'all'} type="button" className={`chip${uladh === u ? ' is-on' : ''}`} aria-pressed={uladh === u} onClick={() => setUladh(u)}>
+              {u ? t(`uladh.${u}`) : t('search.allUlads')}
             </button>
           ))}
         </div>

@@ -1,10 +1,11 @@
 import MiniSearch from 'minisearch';
-import type { Product, SynonymGroup } from './types';
+import type { Product, SynonymGroup, Uladh } from './types';
 
 export interface SearchFilters {
   query: string;
   category: string | null;
   size: string | null;
+  uladh?: Uladh | null;
 }
 
 export function normalize(s: string): string {
@@ -71,7 +72,7 @@ export function createSearch(products: Product[], groups: SynonymGroup[]): Catal
   const byId = new Map(products.map((p) => [p.productId, p]));
 
   return {
-    search({ query, category, size }) {
+    search({ query, category, size, uladh }) {
       let result: Product[];
       if (query.trim() === '') {
         result = products;
@@ -82,6 +83,7 @@ export function createSearch(products: Product[], groups: SynonymGroup[]): Catal
       }
       if (category) result = result.filter((p) => p.category === category);
       if (size) result = result.filter((p) => p.variants.some((v) => v.size === size));
+      if (uladh) result = result.filter((p) => p.ulads.includes(uladh));
       return result;
     },
   };

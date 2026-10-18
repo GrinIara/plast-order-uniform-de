@@ -1,6 +1,6 @@
 import Papa from 'papaparse';
 import { z } from 'zod';
-import type { CatalogData, CatalogRow, Product, RowError, Settings, Stock, SynonymGroup, Variant } from './types';
+import { ULADS, type CatalogData, type CatalogRow, type Product, type RowError, type Settings, type Stock, type SynonymGroup, type Uladh, type Variant } from './types';
 
 const STOCK_MAP: Record<string, Stock> = {
   '': 'in',
@@ -20,6 +20,7 @@ const rowSchema = z.object({
   name_de: z.string().trim().default(''),
   category: z.string().trim().min(1, 'відсутня category'),
   synonyms: z.string().default(''),
+  ulad: z.string().default(''),
   size: z.string().trim().min(1, 'відсутній size'),
   stock: z.string().default(''),
   price: z.string().trim().default(''),
@@ -54,6 +55,12 @@ export function parseCatalogCsv(text: string): { rows: CatalogRow[]; errors: Row
       errors.push({ row: rowNumber, message: `невідоме значення stock: «${d.stock}»` });
       return;
     }
+    const ulads = splitList(d.ulad);
+    const unknown = ulads.find((u) => !(ULADS as readonly string[]).includes(u));
+    if (unknown) {
+      errors.push({ row: rowNumber, message: `невідомий улад: «${unknown}» (допустимо: ${ULADS.join(', ')})` });
+      return;
+    }
     let price: number | null = null;
     if (d.price !== '') {
       price = Number(d.price.replace(',', '.'));
@@ -74,6 +81,7 @@ export function parseCatalogCsv(text: string): { rows: CatalogRow[]; errors: Row
       nameDe: d.name_de,
       category: d.category,
       synonyms: splitList(d.synonyms),
+      ulads: ulads as Uladh[],
       size: d.size,
       stock,
       price,
@@ -116,7 +124,7 @@ export function buildCatalogData(catalogCsv: string, synonymsCsv: string, settin
   };
 }
 
-const SIZE_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+const SIZE_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'МАЛА', 'ВЕЛИКА'];
 
 export function compareSizes(a: string, b: string): number {
   const ia = SIZE_ORDER.indexOf(a.toUpperCase());
@@ -128,6 +136,20 @@ export function compareSizes(a: string, b: string): number {
   if (ia >= 0) return -1;
   if (ib >= 0) return 1;
   return a.localeCompare(b, 'uk');
+}
+
+const ULAD_KEYWORDS: Record<Uladh, string[]> = {
+  Пташата: ['пташ', 'упп'],
+  УПН: ['новак', 'новач', 'упн'],
+  УПЮ: ['юнак', 'юнач', 'упю', 'упу'],
+  УСП: ['старш', 'усп'],
+  УПС: ['сеньйор', 'сеніор', 'упс'],
+};
+
+/** Улад за словами в назві/синонімах (УПП = пташата). Порожньо — улад не визначено. */
+export function detectUlads(text: string): Uladh[] {
+  const tokens = text.toLowerCase().split(/[^\p{L}]+/u).filter(Boolean);
+  return ULADS.filter((u) => ULAD_KEYWORDS[u].some((k) => tokens.some((tok) => tok.startsWith(k))));
 }
 
 /** Групує рядки (один на розмір) у товари за product_id. */
@@ -153,11 +175,16 @@ export function groupProducts(rows: CatalogRow[]): Product[] {
         nameDe: r.nameDe,
         category: r.category,
         synonyms: [...r.synonyms],
+        ulads: [],
         variants: [variant],
       });
     }
   }
   const products = [...map.values()];
+  for (const p of products) {
+    const explicit = rows.filter((r) => r.productId === p.productId).flatMap((r) => r.ulads ?? []);
+    p.ulads = explicit.length > 0 ? ULADS.filter((u) => explicit.includes(u)) : detectUlads(`${p.nameUk} ${p.synonyms.join(' ')}`);
+  }
   for (const p of products) p.variants.sort((a, b) => compareSizes(a.size, b.size));
   return products;
 }
