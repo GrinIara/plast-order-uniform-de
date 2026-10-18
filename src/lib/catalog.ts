@@ -116,7 +116,7 @@ export function buildCatalogData(catalogCsv: string, synonymsCsv: string, settin
   };
 }
 
-const SIZE_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+const SIZE_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'МАЛА', 'ВЕЛИКА'];
 
 export function compareSizes(a: string, b: string): number {
   const ia = SIZE_ORDER.indexOf(a.toUpperCase());

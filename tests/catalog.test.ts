@@ -42,3 +42,20 @@ describe('groupProducts', () => {
     expect(products).toHaveLength(2);
   });
 });
+
+describe('formatPrice', () => {
+  it('показує гривні: ціле без копійок, дробове з двома знаками', async () => {
+    const { formatPrice } = await import('../src/lib/ui');
+    expect(formatPrice(930)).toMatch(/^930\s₴$/);
+    expect(formatPrice(24.5)).toMatch(/^24,50\s₴$/);
+    expect(formatPrice(1250)).toMatch(/^1\s?250\s₴$/);
+  });
+});
+
+describe('compareSizes', () => {
+  it('ставить «Мала» перед «Велика», числові діапазони за зростанням', async () => {
+    const { compareSizes } = await import('../src/lib/catalog');
+    expect(['Велика', 'Мала'].sort(compareSizes)).toEqual(['Мала', 'Велика']);
+    expect(['38-40', '35-37', 'Дитячі'].sort(compareSizes)).toEqual(['35-37', '38-40', 'Дитячі']);
+  });
+});

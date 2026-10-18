@@ -2,12 +2,8 @@ import { useState } from 'react';
 import { addToCart, removeFromCart, useCart } from '../lib/cart';
 import { t } from '../lib/i18n';
 import { announce } from '../lib/live';
-import { categoryMark, formatDate } from '../lib/ui';
+import { categoryMark, formatDate, formatPrice } from '../lib/ui';
 import type { Product } from '../lib/types';
-
-function formatPrice(price: number): string {
-  return `${price.toFixed(2).replace('.', ',')} €`;
-}
 
 export function ProductCard({ product, tint }: { product: Product; tint: string }) {
   const cart = useCart();

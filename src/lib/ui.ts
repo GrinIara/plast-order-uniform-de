@@ -21,3 +21,11 @@ export function formatDate(iso: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
   return m ? `${m[3]}.${m[2]}.${m[1]}` : iso;
 }
+
+const priceFormat = new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH', minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+/** Ціна в гривнях: 930 → «930 ₴», 24.5 → «24,50 ₴». */
+export function formatPrice(price: number): string {
+  const text = priceFormat.format(price);
+  return Number.isInteger(price) ? text : text.replace(/[,.](\d)(?!\d)/, ',$10');
+}
