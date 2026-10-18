@@ -25,8 +25,26 @@ const rowSchema = z.object({
   stock: z.string().default(''),
   price: z.string().trim().default(''),
   source_url: z.string().trim().refine((v) => /^https:\/\//.test(v), 'source_url має починатися з https://'),
-  updated_at: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'updated_at: формат РРРР-ММ-ДД'),
+  updated_at: z.string().trim().transform(normalizeDate).refine((v) => v !== null, 'updated_at: формат РРРР-ММ-ДД'),
 });
+
+function isoDate(year: number, month: number, day: number): string | null {
+  const d = new Date(Date.UTC(year, month - 1, day));
+  if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day) return null;
+  return d.toISOString().slice(0, 10);
+}
+
+/** Приймає РРРР-ММ-ДД, М/Д/РР (так Google Sheets показує дати в CSV) та ДД.ММ.РРРР; повертає РРРР-ММ-ДД або null. */
+export function normalizeDate(value: string): string | null {
+  const v = value.trim();
+  let m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+  if (m) return isoDate(+m[1], +m[2], +m[3]);
+  m = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(v);
+  if (m) return isoDate(m[3].length === 2 ? 2000 + +m[3] : +m[3], +m[1], +m[2]);
+  m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(v);
+  if (m) return isoDate(+m[3], +m[2], +m[1]);
+  return null;
+}
 
 function parseCsv(text: string): Record<string, string>[] {
   const result = Papa.parse<Record<string, string>>(text.replace(/^﻿/, ''), {
@@ -86,7 +104,7 @@ export function parseCatalogCsv(text: string): { rows: CatalogRow[]; errors: Row
       stock,
       price,
       sourceUrl: d.source_url,
-      updatedAt: d.updated_at,
+      updatedAt: d.updated_at as string,
     });
   });
   return { rows, errors };
