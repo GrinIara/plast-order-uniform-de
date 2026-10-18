@@ -15,6 +15,8 @@ export interface Product {
   nameDe: string;
   category: string;
   synonyms: string[];
+  /** Уряди, для яких призначений товар. Порожньо — улад не визначено: товар видно лише у фільтрі «Усі уладі». */
+  ulads: Uladh[];
   variants: Variant[];
 }
 
@@ -30,6 +32,8 @@ export interface CatalogRow extends Variant {
   nameDe: string;
   category: string;
   synonyms: string[];
+  /** Явно вказані в колонці ulad; якщо порожньо, улад визначається з назви. */
+  ulads?: Uladh[];
 }
 
 export interface SynonymGroup {

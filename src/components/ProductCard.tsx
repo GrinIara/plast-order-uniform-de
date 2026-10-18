@@ -31,15 +31,14 @@ export function ProductCard({ product, tint }: { product: Product; tint: string 
 
   return (
     <article className="card">
-      <a className="card__photo" href={url} target="_blank" rel="noopener noreferrer" aria-label={t('card.photoAria', { name: product.nameUk })} style={{ background: tint }}>
+      <div className="card__photo" style={{ background: tint }}>
         <span className="card__photo-text">
           <span className="card__category">{product.category}</span>
-          <span className="card__photo-link">{t('card.photo')}</span>
         </span>
         <span className="card__mark" aria-hidden="true">
           {categoryMark(product.category)}
         </span>
-      </a>
+      </div>
 
       <div className="card__body">
         <div>

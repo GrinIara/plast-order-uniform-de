@@ -59,3 +59,14 @@ describe('compareSizes', () => {
     expect(['38-40', '35-37', 'Дитячі'].sort(compareSizes)).toEqual(['35-37', '38-40', 'Дитячі']);
   });
 });
+
+describe('detectUlads', () => {
+  it('розпізнає улад за назвою; УПП = пташата; без збігів — універсальний', async () => {
+    const { detectUlads } = await import('../src/lib/catalog');
+    expect(detectUlads('Сорочка УПП')).toEqual(['Пташата']);
+    expect(detectUlads('Футболка пташат')).toEqual(['Пташата']);
+    expect(detectUlads('Хустка Новаків')).toEqual(['УПН']);
+    expect(detectUlads('Хустка Пластунів Сеньйорів')).toEqual(['УПС']);
+    expect(detectUlads('Свисток')).toEqual([]);
+  });
+});

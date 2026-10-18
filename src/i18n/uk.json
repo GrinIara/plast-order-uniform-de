@@ -22,6 +22,8 @@
   "search.clear": "Очистити пошук",
   "search.categories": "Категорії",
   "search.all": "Усі",
+  "search.ulads": "Улад",
+  "search.allUlads": "Усі уладі",
   "search.size": "Розмір",
   "search.anySize": "Будь-який",
   "search.found": "Знайдено: {count}",
@@ -37,8 +39,6 @@
   "catalog.empty.write": "Написати координатору",
   "catalog.partial": "Частину позицій каталогу не вдалося завантажити.",
 
-  "card.photo": "Фото на scoutstyle.net ↗",
-  "card.photoAria": "{name}: фото на scoutstyle.net (нова вкладка)",
   "card.priceDate": "· за даними на {date}",
   "card.sizeGroup": "Розмір",
   "card.sizeAria": "{size}, {status}{cart}",
@@ -121,7 +121,7 @@
   "form.copyOrder": "Скопіювати текст замовлення",
   "form.orderHeader": "Замовлення:",
 
-  "uladh.Пташата": "Пташата (2–5 років)",
+  "uladh.Пташата": "Пташата / УПП (2–5 років)",
   "uladh.УПН": "Новацтво / УПН (6–11)",
   "uladh.УПЮ": "Юнацтво / УПЮ (11–18)",
   "uladh.УСП": "Старше пластунство / УСП (18–35)",
