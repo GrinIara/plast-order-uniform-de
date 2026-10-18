@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { groupProducts, normalizeStock, parseCatalogCsv } from '../src/lib/catalog';
+import { groupProducts, normalizeDate, normalizeStock, parseCatalogCsv } from '../src/lib/catalog';
 
 const csv = readFileSync('tests/fixtures/catalog.csv', 'utf8');
 
@@ -68,5 +68,22 @@ describe('detectUlads', () => {
     expect(detectUlads('Хустка Новаків')).toEqual(['УПН']);
     expect(detectUlads('Хустка Пластунів Сеньйорів')).toEqual(['УПС']);
     expect(detectUlads('Свисток')).toEqual([]);
+  });
+});
+
+describe('normalizeDate', () => {
+  it('приймає ISO, М/Д/РР і ДД.ММ.РРРР', () => {
+    expect(normalizeDate('2026-10-18')).toBe('2026-10-18');
+    expect(normalizeDate('10/18/26')).toBe('2026-10-18');
+    expect(normalizeDate('1/5/2026')).toBe('2026-01-05');
+    expect(normalizeDate('18.10.2026')).toBe('2026-10-18');
+    expect(normalizeDate(' 05.01.2026 ')).toBe('2026-01-05');
+  });
+
+  it('відхиляє неіснуючі й невідомі формати', () => {
+    expect(normalizeDate('18/10/26')).toBeNull();
+    expect(normalizeDate('31.02.2026')).toBeNull();
+    expect(normalizeDate('2026/10/18')).toBeNull();
+    expect(normalizeDate('')).toBeNull();
   });
 });
