@@ -62,10 +62,10 @@ describe('повний сценарій замовлення', () => {
     expect(within(shirt).getByText(/Додано ✓ · S/)).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('plast-cart-v1')!)).toHaveLength(1);
 
-    // Кошик: позиція, реквізити та порожня форма не відправляється.
+    // Кошик: позиція, оплата готівкою та порожня форма не відправляється.
     window.location.hash = '#/cart';
     expect(await screen.findByText('Позицій: 1')).toBeTruthy();
-    expect(screen.getByText(/DE00 0000/)).toBeTruthy();
+    expect(screen.getByText(/Оплата готівкою/)).toBeTruthy();
     await user.click(screen.getByRole('button', { name: 'Відправити' }));
     expect(await screen.findByText('Вкажіть ім\'я')).toBeTruthy();
     expect(posts).toHaveLength(0);
@@ -87,8 +87,7 @@ describe('повний сценарій замовлення', () => {
 
     // «Дякуємо» з реквізитами, кошик очищено.
     expect(await screen.findByText(/Дякуємо! Замовлення відправлено/)).toBeTruthy();
-    expect(screen.getByText(/DE00 0000/)).toBeTruthy();
-    expect(screen.getByText(/Однострій – Коваль Олена/)).toBeTruthy();
+    expect(screen.getByText(/Оплата готівкою/)).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('plast-cart-v1')!)).toHaveLength(0);
   });
 
