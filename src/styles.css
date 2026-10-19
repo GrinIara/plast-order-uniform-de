@@ -73,7 +73,7 @@ h1, h2, h3, p, dl, ul { margin: 0; }
 .searchbox__input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .searchbox__clear { position: absolute; right: 4px; width: 44px; height: 44px; border: 0; background: transparent; color: var(--muted); font-size: 22px; cursor: pointer; border-radius: 10px; }
 .searchbox__clear:hover { color: var(--text); }
-.chips { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 2px; margin: 0 -16px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { flex: none; min-height: 40px; padding: 0 14px; border-radius: 20px; border: 1.5px solid var(--border-strong); background: var(--surface); color: var(--text); font-size: 15px; font-weight: 500; cursor: pointer; white-space: nowrap; }
 .chip:hover { border-color: var(--accent); }
 .chip.is-on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
