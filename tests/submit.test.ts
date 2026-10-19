@@ -34,7 +34,7 @@ const flat = (s: string) => s.replace(/[^\S\n]/g, ' ');
 
 describe('SPEC-2026-10-19-item-quantity', () => {
   it('AC-31, AC-32, AC-62: рядок несе контакти, номер, SKU, назву, розмір, кількість і імена дитини', () => {
-    const body = buildLinePayload(config, form, lines[0], ID, 1860);
+    const body = buildLinePayload(config, form, lines[0], ID);
     expect(body.get(f.firstName)).toBe('Олена');
     expect(body.get(f.uladh)).toBe('УСП');
     expect(body.get(f.consent)).toBe('Так');
@@ -49,32 +49,32 @@ describe('SPEC-2026-10-19-item-quantity', () => {
 
   it('AC-33, AC-36: itemName і quantity — назва з каталогу (інакше збережена) та ціле число рядком', () => {
     const stored = resolveLines([items[0]], []);
-    expect(buildLinePayload(config, form, stored[0], ID, null).get(f.itemName)).toBe('Сорочка УПП');
-    expect(buildLinePayload(config, form, { ...lines[0], name: 'Нова назва' }, ID, null).get(f.itemName)).toBe('Нова назва');
-    expect(buildLinePayload(config, form, lines[1], ID, null).get(f.quantity)).toBe('1');
+    expect(buildLinePayload(config, form, stored[0], ID).get(f.itemName)).toBe('Сорочка УПП');
+    expect(buildLinePayload(config, form, { ...lines[0], name: 'Нова назва' }, ID).get(f.itemName)).toBe('Нова назва');
+    expect(buildLinePayload(config, form, lines[1], ID).get(f.quantity)).toBe('1');
   });
 
   it('AC-34: без SKU в каталозі рядок все одно має збережену назву', () => {
     const [line] = resolveLines([items[1]], []);
-    expect(buildLinePayload(config, form, line, ID, null).get(f.itemName)).toBe('Пілотка');
+    expect(buildLinePayload(config, form, line, ID).get(f.itemName)).toBe('Пілотка');
   });
 
-  it('AC-35, AC-37: «Сума» лише коли передано total і поле налаштоване; десяткова кома', () => {
-    expect(buildLinePayload(config, form, lines[0], ID, 1884.5).get(f.total!)).toBe('1884,5');
-    expect(buildLinePayload(config, form, lines[0], ID, 1860).get(f.total!)).toBe('1860');
-    expect(buildLinePayload(config, form, lines[0], ID, null).has(f.total!)).toBe(false);
+  it('AC-35, AC-37: «Сума» — сума цієї позиції, лише коли є ціна й поле налаштоване; десяткова кома', () => {
+    expect(buildLinePayload(config, form, lines[0], ID).get(f.total!)).toBe('1860');
+    expect(buildLinePayload(config, form, { ...lines[0], lineTotal: 1884.5 }, ID).get(f.total!)).toBe('1884,5');
+    expect(buildLinePayload(config, form, lines[1], ID).has(f.total!)).toBe(false);
     const noTotal = configSchema.parse({ ...example, form: { ...example.form, fields: { ...example.form.fields, total: undefined } } });
-    expect(buildLinePayload(noTotal, form, lines[0], ID, 1860).has('entry.1008')).toBe(false);
+    expect(buildLinePayload(noTotal, form, lines[0], ID).has('entry.1008')).toBe(false);
   });
 
   it('AC-38: застаріле поле «order» ніколи не надсилається', () => {
-    const body = buildLinePayload(config, form, lines[0], ID, 1860);
+    const body = buildLinePayload(config, form, lines[0], ID);
     expect(body.has(f.order!)).toBe(false);
   });
 
   it('AC-65: коми в іменах дитини надсилаються без змін і проходять валідацію', () => {
     const commas = { ...form, childFirstName: 'Олена, Іван', childLastName: 'Коваль, Коваль' };
-    const body = buildLinePayload(config, commas, lines[1], ID, null);
+    const body = buildLinePayload(config, commas, lines[1], ID);
     expect(body.get(f.childFirstName)).toBe('Олена, Іван');
     expect(body.get(f.childLastName)).toBe('Коваль, Коваль');
     expect(validateForm(commas)).toEqual({});
