@@ -61,8 +61,8 @@ export function validateForm(form: ContactForm): FormErrors {
   return errors;
 }
 
-/** Тіло запиту для однієї позиції; `total` («Сума») передається лише для першої позиції замовлення. */
-export function buildLinePayload(config: SiteConfig, form: ContactForm, line: PricedLine, orderId: string, total: number | null): URLSearchParams {
+/** Тіло запиту для однієї позиції; «Сума» — ціна × кількість цієї позиції (порожньо, якщо ціни немає). */
+export function buildLinePayload(config: SiteConfig, form: ContactForm, line: PricedLine, orderId: string): URLSearchParams {
   const f = config.form.fields;
   const body = new URLSearchParams();
   body.set(f.firstName, form.firstName.trim());
@@ -79,7 +79,7 @@ export function buildLinePayload(config: SiteConfig, form: ContactForm, line: Pr
   body.set(f.quantity, String(line.item.quantity));
   body.set(f.childFirstName, form.childFirstName.trim());
   body.set(f.childLastName, form.childLastName.trim());
-  if (total !== null && f.total) body.set(f.total, formatSumField(total));
+  if (line.lineTotal !== null && f.total) body.set(f.total, formatSumField(line.lineTotal));
   return body;
 }
 
@@ -116,7 +116,6 @@ export function postLine(config: SiteConfig, body: URLSearchParams, timeoutMs: n
 
 export interface SendOptions {
   orderId: string;
-  total: number | null;
   isSent: (sku: string) => boolean;
   onSent: (sku: string) => void;
   onProgress: (sent: number) => void;
@@ -128,9 +127,9 @@ export type SendResult = { ok: true } | { ok: false; sent: number };
 /** Надсилає непідтверджені позиції по черзі; зупиняється на першій невдалій. */
 export async function sendOrder(config: SiteConfig, form: ContactForm, lines: PricedLine[], opts: SendOptions): Promise<SendResult> {
   let sent = lines.filter((l) => opts.isSent(l.item.sku)).length;
-  for (const [index, line] of lines.entries()) {
+  for (const line of lines) {
     if (opts.isSent(line.item.sku)) continue;
-    const body = buildLinePayload(config, form, line, opts.orderId, index === 0 ? opts.total : null);
+    const body = buildLinePayload(config, form, line, opts.orderId);
     try {
       await postLine(config, body, opts.timeoutMs ?? SEND_TIMEOUT_MS);
     } catch {

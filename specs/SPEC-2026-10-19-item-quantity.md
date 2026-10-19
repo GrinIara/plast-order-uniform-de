@@ -27,7 +27,7 @@ Supersedes: —
 - G1: A customer can order 1–20 units of every size, from the product card and from the summary page.
 - G2: The summary page shows a per-line price × quantity and an approximate order total that excludes unpriced lines and says how many lines are unpriced.
 - G3: Each order line becomes its own row in the responses sheet, with a shared order id, the contacts, SKU, name, size and quantity, so that a pivot table over the raw responses sums quantities per item without any manual splitting.
-- G4: The approximate order total reaches the coordinator in a separate numeric "Сума" field, exactly once per order.
+- G4: The line sum (price × quantity) of each order line reaches the coordinator in a separate numeric "Сума" field on that line's row, so the order total is the SUM of the column for one order id.
 - G5: A network failure in the middle of an order never forces the customer to resend lines that were already sent, and never loses the cart.
 - G6: Carts saved before this feature keep working.
 - G7: Every order names the child the items are for (first and last name, required), separately from the contact person, and every line row carries that name.
@@ -35,7 +35,7 @@ Supersedes: —
 ### Non-goals
 
 - Exact or binding prices; the total stays approximate and the coordinator still communicates the final amount (`src/i18n/uk.json:81`, `docs/SPEC.md:99`).
-- A per-line price (or line total) field in the form. User decision (OQ-1, resolved): only the order total goes to the form, in "Сума".
+- A separate unit-price field in the form. User decision (OQ-1, resolved, revised after the first live test): the form carries only the line sum in "Сума", not the unit price and not the order total.
 - A "line k of N" field in the form. [NEEDS CLARIFICATION: OQ-11]
 - An order-wide quantity limit (user decision: only 20 per size).
 - Typing a quantity into a text box; quantity changes only through the − / + buttons. [NEEDS CLARIFICATION: OQ-10]
@@ -53,7 +53,7 @@ Supersedes: —
 - US-1 [Must]: As a customer, I want to add a size to my order and then change its quantity with − / + on the product card, so that I can order several identical items.
 - US-2 [Must]: As a customer, I want to see and change the quantity of each line on the summary page, with price × quantity per line and an approximate total, so that I know roughly what I will pay.
 - US-3 [Must]: As a coordinator, I want one responses-sheet row per order line, with order id, contacts, SKU, name, size and quantity, so that a pivot table groups all orders by item and sums quantities for one combined supplier order.
-- US-4 [Must]: As a coordinator, I want the approximate order total in a separate "Сума" field, once per order, so that I can tell the customer the amount without mixing it into item rows.
+- US-4 [Must]: As a coordinator, I want the sum of each line in a separate "Сума" field on that line's row, so that I can total an order by its id and tell the customer the amount without parsing text.
 - US-5 [Must]: As a customer, I want a failed submission to resume from the first unsent line, so that I neither lose my order nor send lines twice.
 - US-6 [Should]: As a customer, I want the "copy order text" fallback to contain the order id, quantities, prices and total, so that a manually sent order carries the same information.
 - US-7 [Should]: As a returning customer, I want a cart I saved before this change to still be there, so that I don't have to pick items again.
@@ -122,8 +122,8 @@ Terms:
 - AC-32 (US-3): Each line submission shall carry the order id, the line's SKU, the product name, the size and the quantity in their configured form fields. · Verify: unit — observable: request body fields for order id, SKU, name, size, quantity are present and match the line
 - AC-33 (US-3): Each line submission shall send the quantity as a plain integer with no unit or other characters. · Verify: unit — observable: quantity value is an integer string from "1" to "20", e.g. "2"
 - AC-34 (US-3): Each line submission shall send the product name from the currently loaded catalog, and IF the SKU is no longer in the catalog THEN the name stored in the cart. · Verify: unit — observable: name field equals the catalog name, or the stored name for a missing SKU
-- AC-35 (US-4): WHERE the "Сума" form field is configured, WHILE at least one line is priced, the UI shall send the approximate total in that field on the first line submission of the order only. · Verify: unit — observable: only the request for line 1 has the total field; lines 2..N don't
-- AC-36 (US-4): IF no line is priced, THEN no line submission shall carry the "Сума" field. [NEEDS CLARIFICATION: OQ-4] · Verify: unit — observable: no request body contains the total field
+- AC-35 (US-4): WHERE the "Сума" form field is configured, WHILE a line is priced, the UI shall send that line's sum (price × quantity) in that field on that line's submission. · Verify: unit — observable: each request for a priced line has its own line sum, e.g. "1860" for 930 × 2; the order total is never sent
+- AC-36 (US-4): IF a line is unpriced, THEN its submission shall not carry the "Сума" field. [NEEDS CLARIFICATION: OQ-4] · Verify: unit — observable: the request body of an unpriced line has no total field
 - AC-37 (US-4): The "Сума" value shall be written as digits without currency symbol and without thousands separator, with a decimal comma and at most 2 decimals. (Non-critical: the total is approximate, see OQ-3, resolved.) · Verify: unit — observable: 1884.5 → "1884,5"; 1860 → "1860"
 - AC-38 (US-3): No line submission shall carry the legacy "Замовлення" text field. · Verify: unit — observable: no request body contains the configured legacy order field
 - AC-39 (US-3): WHEN the customer first clicks "Відправити" for an order, the UI shall create one order id in the format `YYYYMMDD-XXXX` (device local date, 4 characters from the digits 2–9 and the capital Latin letters without I, L, O), and shall send that same id on every line and on every retry of that order. [NEEDS CLARIFICATION: OQ-2] · Verify: unit — observable: all requests of one order, including retries, carry the same id matching `^[0-9]{8}-[2-9A-HJKMNP-Z]{4}$`
@@ -193,7 +193,7 @@ Today the form has only the contact person's first and last name, under the head
 | E-15 | A request hangs without failing | design analysis; user (OQ-8 decision) | After 15 s it counts as a send failure: stop, report K of N, resume unsent lines → AC-66, NFR-7. A late-recorded row may duplicate on retry → E-6 |
 | E-16 | Two orders get the same order id | design analysis | Accepted limitation: about 1 in 920 000 for two orders created on the same day (31^4 combinations); the coordinator can still tell them apart by contacts. Repeated in Non-goals |
 | E-17 | Site deployed with a new `SITE_CONFIG` before the Google Form was changed | design analysis | Prevented by the rollout order in **Google Form change checklist**; missing config keys → AC-55; legacy config accepted → AC-56 |
-| E-18 | Retry after reload when line 1 (with "Сума") was already sent | design analysis | "Сума" is not sent again, because only the first line carries it and sent lines are not resent → AC-35, AC-45 |
+| E-18 | Retry after reload when some lines were already sent | design analysis | Each line carries its own "Сума", so a resent line is complete and sent lines are not resent → AC-35, AC-45 |
 | E-19 | Several sizes of one product | design analysis | Separate lines and quantities → AC-8 |
 | E-20 | Large cart (many lines) | design analysis | No line limit; sending is sequential with visible progress → AC-30, AC-42 |
 | E-21 | Child's name entered as spaces only, or with surrounding spaces | user (child-name requirement) | Treated as empty → AC-59, AC-60, AC-61; otherwise trimmed → AC-62 |
@@ -234,7 +234,7 @@ sequenceDiagram
   C->>S: Відправити
   S->>L: save order id, 0 of N sent
   loop each unsent line, in cart order (AC-30)
-    S->>G: POST line k (contacts, order id, SKU, name, size, quantity, Сума on k=1 only)
+    S->>G: POST line k (contacts, order id, SKU, name, size, quantity, Сума = line sum)
     Note over S,G: no-cors, response invisible; success = finished within 15 s without network error
     G-->>R: one row (fire-and-forget from the site's view)
     alt network error or no finish within 15 s (AC-66)
@@ -263,7 +263,7 @@ sequenceDiagram
 | `itemName` | product name (catalog, else stored) | every line | new, required | AC-32, AC-34 |
 | `size` | line size | every line | new, required | AC-32 |
 | `quantity` | integer 1–20 | every line | new, required | AC-32, AC-33 |
-| `total` ("Сума") | approximate total, e.g. `1884,5` | first line only, and only when ≥1 line is priced | new, optional in config | AC-35, AC-36, AC-37 |
+| `total` ("Сума") | line sum, e.g. `1860` | every line that is priced | new, optional in config | AC-35, AC-36, AC-37 |
 | `order` ("Замовлення") | — | never | no longer sent; key accepted but unused | AC-38, AC-56 |
 
 Error cases: only send failures are observable, i.e. a network error (fetch rejects) or no finish within 15 s → AC-43, AC-44, AC-66. A timed-out request may still have been recorded → E-6. Google-side rejections are not observable → E-7.
@@ -380,7 +380,7 @@ The columns "Ім'я дитини" and "Прізвище дитини" may hold 
 
 ## Open questions
 
-- OQ-1 — **Resolved (user decision):** no per-line price field. Each line carries order id, contacts, SKU, name, size and quantity; the price reaches the form only as the order total in "Сума". Line prices remain visible on the summary page and in the copy text.
+- OQ-1 — **Resolved (user decision):** revised after the first live test: no unit-price field and no order total in the form. Each line carries order id, contacts, SKU, name, size, quantity and its own line sum in "Сума" (price × quantity, empty when unpriced). The order total is the SUM of "Сума" per order id; the total stays visible on the summary page and in the copy text.
 - OQ-2: Order id format. — Default taken: `YYYYMMDD-XXXX` (device local date + 4 characters from an alphabet without lookalikes). It is short enough to read out on the phone, and the date helps the coordinator filter.
 - OQ-3 — **Resolved (user decision):** the number format of "Сума" is non-critical, because the sum is approximate anyway. The default stands: decimal comma, no thousands separator, no currency symbol (AC-37).
 - OQ-4: All lines unpriced. — Default taken: show "Ціни невідомі, суму повідомить координатор" and send no "Сума", rather than a misleading "0 ₴".
@@ -416,11 +416,11 @@ The columns "Ім'я дитини" and "Прізвище дитини" may hold 
 | Duplicate row after an ambiguous failure | corner case | `src/lib/submit.ts:61-64` | rejected → Non-goal (E-6) | Undetectable under no-cors |
 | Silent Google rejection | corner case | `docs/SPEC.md:97` | rejected → Non-goal (E-7); mitigated by the checklist | Undetectable under no-cors |
 | Hanging request | corner case | design analysis | accepted → AC-66, NFR-7 (OQ-8 resolved) | User decision: 15 s timeout |
-| Where "Сума" appears across per-line rows | module communication | user (BQ-1 revision) | accepted → AC-35 | First line only keeps SUM over the column correct |
+| Where "Сума" appears across per-line rows | module communication | user (BQ-1 revision) | accepted → AC-35 | Revised: every row carries its own line sum; SUM over the column per order id is the order total |
 | Order id generation | module communication | user (BQ-1 revision) | accepted → AC-39; open → OQ-2 | Shared key for grouping and dedupe |
 | Config schema change and legacy `order` key | module communication | `src/lib/config.ts:12-21`, `scripts/write-config.ts:26-29` | accepted → AC-55, AC-56 | Fail early, stay compatible |
 | Google Form must change before deploy | module communication | design analysis | accepted → E-17, checklist | Prevents lost lines |
-| Per-line price field | module communication | original request vs BQ-1 revision | rejected → Non-goal (OQ-1 resolved) | User decision: only the order total goes to the form |
+| Per-line price field | module communication | original request vs BQ-1 revision | accepted in revised form → AC-35 | User decision after the first live test: the line sum, not the unit price and not the order total, goes to the form |
 | Approximate total with unpriced lines | UX | BQ-4 | accepted → AC-19, AC-20, AC-21 | User decision |
 | "✓ M ×2" on the size chip | UX | proposal, accepted | accepted → AC-11 | Quick feedback on the card |
 | Screen-reader labels and announcements | UX | proposal, accepted | accepted → AC-13, AC-14, AC-15 | Accessibility |

@@ -144,7 +144,6 @@ h1, h2, h3, p, dl, ul { margin: 0; }
 .pay { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 14px; font-size: 15px; }
 .pay dt { color: var(--muted); }
 .pay dd { margin: 0; font-weight: 500; }
-.pay__iban { font-weight: 600; font-variant-numeric: tabular-nums; word-break: break-word; }
 .pay__num { font-variant-numeric: tabular-nums; }
 
 /* Форма */

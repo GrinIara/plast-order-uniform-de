@@ -155,6 +155,7 @@ describe('SPEC-2026-10-19-item-quantity', () => {
     const button = await screen.findByRole('button', { name: 'Відправляємо… 1 з 3' });
     await user.dblClick(button);
     expect(posts).toHaveLength(2);
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it('AC-44, AC-46, AC-45: збій на 2-й позиції — сповіщення 1 з 3, елементи заблоковано, повтор шле лише решту', async () => {
