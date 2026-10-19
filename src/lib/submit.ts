@@ -1,6 +1,7 @@
 import type { SiteConfig } from './config';
 import { t } from './i18n';
-import type { CartItem } from './types';
+import { formatSumField, type OrderTotals, type PricedLine } from './pricing';
+import { formatPrice, itemsWord } from './ui';
 
 export interface ContactForm {
   firstName: string;
@@ -10,18 +11,32 @@ export interface ContactForm {
   uladh: string;
   unit: string;
   consent: boolean;
-}
-
-/** Один рядок на позицію: `SKU / розмір — назва`. */
-export function buildOrderText(items: CartItem[]): string {
-  return items.map((i) => `${i.sku} / ${i.size} — ${i.name}`).join('\n');
+  childFirstName: string;
+  childLastName: string;
 }
 
 /** Текст замовлення з контактами для ручного копіювання (запасний сценарій). */
-export function buildCopyText(items: CartItem[], form: ContactForm): string {
+export function buildCopyText(lines: PricedLine[], totals: OrderTotals, form: ContactForm, orderId: string | null): string {
+  const rows = lines.map((l) => {
+    const params = { sku: l.item.sku, size: l.item.size, name: l.name, quantity: l.item.quantity };
+    return l.price === null || l.lineTotal === null
+      ? t('copy.lineUnpriced', params)
+      : t('copy.line', { ...params, price: formatPrice(l.price), lineTotal: formatPrice(l.lineTotal) });
+  });
+  if (totals.total !== null) {
+    const total = formatPrice(totals.total);
+    rows.push(
+      totals.unpriced > 0 ? t('copy.totalUnpriced', { total, count: totals.unpriced, unit: itemsWord(totals.unpriced) }) : t('copy.total', { total }),
+    );
+  }
+  const childFirst = form.childFirstName.trim();
+  const childLast = form.childLastName.trim();
+  if (childFirst) rows.push(t('copy.childFirstName', { value: childFirst }));
+  if (childLast) rows.push(t('copy.childLastName', { value: childLast }));
+  const header = orderId ? t('copy.header', { id: orderId }) : t('form.orderHeader');
   const person = `${form.lastName} ${form.firstName}`.trim();
   const place = [form.station, form.uladh, form.unit].filter((v) => v.trim()).join(', ');
-  return `${t('form.orderHeader')}\n${items.map((i) => `${i.sku} / ${i.size}`).join('\n')}\n\n${person}, ${form.phone}\n${place}`;
+  return `${header}\n${rows.join('\n')}\n\n${person}, ${form.phone}\n${place}`;
 }
 
 const PHONE_RE = /^\+?[0-9 ()./-]{7,24}$/;
@@ -41,10 +56,13 @@ export function validateForm(form: ContactForm): FormErrors {
   if (!form.station.trim()) errors.station = true;
   if (!form.uladh) errors.uladh = true;
   if (!form.consent) errors.consent = true;
+  if (!form.childFirstName.trim()) errors.childFirstName = true;
+  if (!form.childLastName.trim()) errors.childLastName = true;
   return errors;
 }
 
-export function buildPayload(config: SiteConfig, form: ContactForm, items: CartItem[]): URLSearchParams {
+/** Тіло запиту для однієї позиції; `total` («Сума») передається лише для першої позиції замовлення. */
+export function buildLinePayload(config: SiteConfig, form: ContactForm, line: PricedLine, orderId: string, total: number | null): URLSearchParams {
   const f = config.form.fields;
   const body = new URLSearchParams();
   body.set(f.firstName, form.firstName.trim());
@@ -53,24 +71,74 @@ export function buildPayload(config: SiteConfig, form: ContactForm, items: CartI
   body.set(f.station, form.station.trim());
   body.set(f.uladh, form.uladh);
   if (form.unit.trim()) body.set(f.unit, form.unit.trim());
-  body.set(f.order, buildOrderText(items));
   body.set(f.consent, config.form.consentValue);
+  body.set(f.orderId, orderId);
+  body.set(f.sku, line.item.sku);
+  body.set(f.itemName, line.name);
+  body.set(f.size, line.item.size);
+  body.set(f.quantity, String(line.item.quantity));
+  body.set(f.childFirstName, form.childFirstName.trim());
+  body.set(f.childLastName, form.childLastName.trim());
+  if (total !== null && f.total) body.set(f.total, formatSumField(total));
   return body;
 }
 
+export const SEND_TIMEOUT_MS = 15_000;
+
 /**
- * Надсилає замовлення POST-запитом на formResponse у режимі no-cors:
+ * Надсилає один рядок POST-запитом на formResponse у режимі no-cors:
  * відповіді не видно, тож успіхом вважається будь-який запит без мережевої помилки.
+ * Запит, що не завершився за timeoutMs, вважається невдалим.
  */
-export async function submitOrder(config: SiteConfig, form: ContactForm, items: CartItem[]): Promise<void> {
+export function postLine(config: SiteConfig, body: URLSearchParams, timeoutMs: number): Promise<void> {
   if (!config.form.action) {
-    if (import.meta.env.DEV) return;
-    throw new Error('form.action не налаштовано');
+    if (import.meta.env.DEV) return Promise.resolve();
+    return Promise.reject(new Error('form.action не налаштовано'));
   }
-  await fetch(config.form.action, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: buildPayload(config, form, items),
+  const action = config.form.action;
+  return new Promise<void>((resolve, reject) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      controller.abort();
+      reject(new Error('timeout'));
+    }, timeoutMs);
+    fetch(action, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+      signal: controller.signal,
+    })
+      .then(() => resolve(), reject)
+      .finally(() => clearTimeout(timer));
   });
+}
+
+export interface SendOptions {
+  orderId: string;
+  total: number | null;
+  isSent: (sku: string) => boolean;
+  onSent: (sku: string) => void;
+  onProgress: (sent: number) => void;
+  timeoutMs?: number;
+}
+
+export type SendResult = { ok: true } | { ok: false; sent: number };
+
+/** Надсилає непідтверджені позиції по черзі; зупиняється на першій невдалій. */
+export async function sendOrder(config: SiteConfig, form: ContactForm, lines: PricedLine[], opts: SendOptions): Promise<SendResult> {
+  let sent = lines.filter((l) => opts.isSent(l.item.sku)).length;
+  for (const [index, line] of lines.entries()) {
+    if (opts.isSent(line.item.sku)) continue;
+    const body = buildLinePayload(config, form, line, opts.orderId, index === 0 ? opts.total : null);
+    try {
+      await postLine(config, body, opts.timeoutMs ?? SEND_TIMEOUT_MS);
+    } catch {
+      return { ok: false, sent };
+    }
+    sent += 1;
+    opts.onSent(line.item.sku);
+    opts.onProgress(sent);
+  }
+  return { ok: true };
 }

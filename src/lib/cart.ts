@@ -1,15 +1,24 @@
 import { useSyncExternalStore } from 'react';
-import type { CartItem } from './types';
+import { QTY_MAX, QTY_MIN, type CartItem } from './types';
 
 const KEY = 'plast-cart-v1';
 const listeners = new Set<() => void>();
 let cache: CartItem[] | null = null;
 
+/** Кількість зі сховища → ціле 1–20; некоректні значення стають 1 (понад 20 → 20). */
+export function normalizeQuantity(raw: unknown): number {
+  if (typeof raw !== 'number' || !Number.isFinite(raw) || !Number.isInteger(raw) || raw < QTY_MIN) return QTY_MIN;
+  return raw > QTY_MAX ? QTY_MAX : raw;
+}
+
 function read(): CartItem[] {
   try {
     const raw = localStorage.getItem(KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? (parsed as CartItem[]).filter((i) => i && typeof i.sku === 'string') : [];
+    if (!Array.isArray(parsed)) return [];
+    return (parsed as CartItem[])
+      .filter((i) => i && typeof i.sku === 'string')
+      .map((i) => ({ ...i, quantity: normalizeQuantity((i as { quantity?: unknown }).quantity) }));
   } catch {
     return [];
   }
@@ -30,10 +39,23 @@ export function getCart(): CartItem[] {
   return cache;
 }
 
-export function addToCart(item: CartItem): void {
+export function addToCart(item: Omit<CartItem, 'quantity'>): void {
   const items = getCart();
   if (items.some((i) => i.sku === item.sku)) return;
-  write([...items, item]);
+  write([...items, { ...item, quantity: QTY_MIN }]);
+}
+
+export function setQuantity(sku: string, quantity: number): void {
+  const items = getCart();
+  const current = items.find((i) => i.sku === sku);
+  if (!current) return;
+  const next = normalizeQuantity(Number.isFinite(quantity) ? Math.round(quantity) : QTY_MIN);
+  if (next === current.quantity) return;
+  write(items.map((i) => (i.sku === sku ? { ...i, quantity: next } : i)));
+}
+
+export function cartUnits(items: CartItem[]): number {
+  return items.reduce((sum, i) => sum + i.quantity, 0);
 }
 
 export function removeFromCart(sku: string): void {

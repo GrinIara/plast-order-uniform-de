@@ -16,7 +16,15 @@
       "uladh": "entry.777",
       "unit": "entry.888",
       "order": "entry.555",
-      "consent": "entry.666"
+      "consent": "entry.666",
+      "orderId": "entry.1001",
+      "sku": "entry.1002",
+      "itemName": "entry.1003",
+      "size": "entry.1004",
+      "quantity": "entry.1005",
+      "childFirstName": "entry.1006",
+      "childLastName": "entry.1007",
+      "total": "entry.1008"
     },
     "consentValue": "Так"
   },

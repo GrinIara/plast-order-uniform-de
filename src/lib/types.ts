@@ -63,7 +63,11 @@ export interface CartItem {
   name: string;
   size: string;
   stock: Stock;
+  quantity: number;
 }
+
+export const QTY_MIN = 1;
+export const QTY_MAX = 20;
 
 export const ULADS = ['Пташата', 'УПН', 'УПЮ', 'УСП', 'УПС'] as const;
 export type Uladh = (typeof ULADS)[number];
