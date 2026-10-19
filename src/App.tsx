@@ -60,10 +60,10 @@ export function App() {
   let content;
   if (route === 'impressum') content = <LegalPage><Impressum /></LegalPage>;
   else if (route === 'datenschutz') content = <LegalPage><Datenschutz /></LegalPage>;
-  else if (route === 'faq') content = <FaqPage config={config} settings={catalog?.settings ?? null} />;
+  else if (route === 'faq') content = <FaqPage config={config} />;
   else if (route === 'notfound') content = <h1 className="h1">{t('notfound.title')}</h1>;
   else if (needsData && status === 'ready' && config && catalog) {
-    content = route === 'cart' ? <CartPage config={config} catalog={catalog} /> : <ThanksPage settings={catalog.settings} />;
+    content = route === 'cart' ? <CartPage config={config} catalog={catalog} /> : <ThanksPage config={config} />;
   } else if (fatal) {
     content = (
       <div className="panel panel--start" role="alert">

@@ -1,11 +1,10 @@
 import { t } from '../lib/i18n';
 import type { SiteConfig } from '../lib/config';
-import type { Settings } from '../lib/types';
 import { PaymentDetails } from './PaymentDetails';
 
 const ITEMS = [1, 2, 3, 4] as const;
 
-export function FaqPage({ config, settings }: { config: SiteConfig | null; settings: Settings | null }) {
+export function FaqPage({ config }: { config: SiteConfig | null }) {
   return (
     <div className="stack narrow">
       <div>
@@ -40,7 +39,7 @@ export function FaqPage({ config, settings }: { config: SiteConfig | null; setti
           </ul>
         </details>
       </div>
-      {settings && <PaymentDetails settings={settings} variant="faq" />}
+      <PaymentDetails variant="faq" config={config} />
     </div>
   );
 }

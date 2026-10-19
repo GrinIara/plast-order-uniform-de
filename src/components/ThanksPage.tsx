@@ -1,10 +1,10 @@
+import type { SiteConfig } from '../lib/config';
 import { t } from '../lib/i18n';
 import { getLastOrder } from '../lib/lastOrder';
 import { itemsWord } from '../lib/ui';
-import type { Settings } from '../lib/types';
 import { PaymentDetails } from './PaymentDetails';
 
-export function ThanksPage({ settings }: { settings: Settings }) {
+export function ThanksPage({ config }: { config: SiteConfig }) {
   const last = getLastOrder();
   return (
     <div className="stack narrow">
@@ -19,7 +19,7 @@ export function ThanksPage({ settings }: { settings: Settings }) {
         <h2 className="panel__title">{t('thanks.nextTitle')}</h2>
         <p>{t('thanks.nextText')}</p>
       </section>
-      <PaymentDetails settings={settings} variant="thanks" personName={last?.name} />
+      <PaymentDetails variant="thanks" config={config} />
       <a className="btn btn--primary btn--xl" href="#/">
         {t('thanks.back')}
       </a>

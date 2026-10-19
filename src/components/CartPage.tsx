@@ -158,7 +158,7 @@ export function CartPage({ config, catalog }: { config: SiteConfig; catalog: Loa
             <div className="panel__foot">{t('cart.noAmount')}</div>
           </section>
 
-          <PaymentDetails settings={catalog.settings} variant="cart" personName={personName} />
+          <PaymentDetails variant="cart" config={config} />
         </div>
 
         <form className="panel form" onSubmit={onSubmit} noValidate aria-labelledby="form-h">
