@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { configSchema } from '../src/lib/config';
 import { clearPendingOrder, getPendingOrder, markLineSent, partialStatus, resetPendingOrderCache, startPendingOrder } from '../src/lib/pendingOrder';
-import { orderTotals, resolveLines } from '../src/lib/pricing';
+import { resolveLines } from '../src/lib/pricing';
 import { sendOrder, type ContactForm } from '../src/lib/submit';
 import type { CartItem } from '../src/lib/types';
 import example from '../config.example.json';
@@ -36,7 +36,6 @@ function stubFetch(behaviour: (n: number) => 'ok' | 'fail' | 'hang') {
 const run = (timeoutMs?: number) =>
   sendOrder(config, form, lines, {
     orderId: ID,
-    total: orderTotals(lines).total,
     isSent: (sku) => sent.has(sku),
     onSent: (sku) => sent.add(sku),
     onProgress: () => {},
@@ -84,13 +83,13 @@ describe('SPEC-2026-10-19-item-quantity', () => {
     expect(calls.every((c) => !c.body.has(f.total!))).toBe(true);
   });
 
-  it('AC-35: «Сума» — лише в запиті першої позиції, якщо хоч одна має ціну', async () => {
+  it('AC-35: «Сума» у кожному запиті — ціна × кількість цієї позиції', async () => {
     const priced = resolveLines(items, [
       { productId: 'P', nameUk: 'P', nameDe: '', category: '', synonyms: [], ulads: [], variants: items.map((i) => ({ sku: i.sku, size: 'M', stock: 'in' as const, price: 10, sourceUrl: '', updatedAt: '' })) },
     ]);
     stubFetch(() => 'ok');
-    await sendOrder(config, form, priced, { orderId: ID, total: orderTotals(priced).total, isSent: () => false, onSent: () => {}, onProgress: () => {} });
-    expect(calls.map((c) => c.body.get(f.total!))).toEqual(['30', null, null]);
+    await sendOrder(config, form, priced, { orderId: ID, isSent: () => false, onSent: () => {}, onProgress: () => {} });
+    expect(calls.map((c) => c.body.get(f.total!))).toEqual(priced.map((l) => String(l.lineTotal)));
   });
 
   it('AC-66: запит, що завис, через 15 с вважається невдалим; 3-й не робиться; повтор починає з 2-ї', async () => {

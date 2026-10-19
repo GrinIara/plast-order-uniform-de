@@ -131,7 +131,6 @@ export function OrderForm({ config, lines, totals }: Props) {
     try {
       const result = await sendOrder(config, form, lines, {
         orderId,
-        total: totals.total,
         isSent: (sku) => getPendingOrder()?.sentSkus.includes(sku) ?? false,
         onSent: markLineSent,
         onProgress: setProgress,
@@ -164,7 +163,7 @@ export function OrderForm({ config, lines, totals }: Props) {
   }
 
   const pending = getPendingOrder();
-  const showAlert = failed || partial !== null;
+  const showAlert = !sending && (failed || partial !== null);
 
   return (
     <form className="panel form" onSubmit={onSubmit} noValidate aria-labelledby="form-h">
