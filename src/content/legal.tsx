@@ -33,8 +33,9 @@ export function Datenschutz() {
       <p>[Name und Anschrift des Verantwortlichen, E-Mail]</p>
       <h2>2. Welche Daten wir verarbeiten</h2>
       <p>
-        Beim Absenden einer Bestellung verarbeiten wir: Vorname, Nachname, Telefonnummer, Ortsgruppe (Stanyzja),
-        Altersstufe (Uladh), optional die Einheit sowie die gewünschten Artikel und Größen. Rechtsgrundlage ist Ihre
+        Beim Absenden einer Bestellung verarbeiten wir: Vorname, Nachname, Telefonnummer, Vor- und Nachname des
+        Kindes, für das die Artikel bestimmt sind, Ortsgruppe (Stanyzja), Altersstufe (Uladh), optional die Einheit
+        sowie die gewünschten Artikel, Größen und Mengen. Rechtsgrundlage ist Ihre
         Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) bzw. die Durchführung der Bestellung (Art. 6 Abs. 1 lit. b DSGVO).
       </p>
       <h2>3. Zweck und Empfänger</h2>
@@ -56,7 +57,9 @@ export function Datenschutz() {
       <h2>6. Lokale Speicherung</h2>
       <p>
         Ihre Auswahl (Warenkorb) wird im lokalen Speicher Ihres Browsers (localStorage) abgelegt, damit sie nach dem
-        Neuladen erhalten bleibt. Diese Daten verlassen Ihr Gerät nicht.
+        Neuladen erhalten bleibt. Bei einer teilweise gesendeten Bestellung merkt sich der Browser außerdem die
+        Bestellnummer und welche Artikel bereits gesendet wurden, jedoch keine Kontaktdaten. Diese Daten verlassen
+        Ihr Gerät nicht.
       </p>
       <h2>7. Ihre Rechte</h2>
       <p>

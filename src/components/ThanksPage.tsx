@@ -1,7 +1,7 @@
 import type { SiteConfig } from '../lib/config';
 import { t } from '../lib/i18n';
 import { getLastOrder } from '../lib/lastOrder';
-import { itemsWord } from '../lib/ui';
+import { formatPrice, itemsWord } from '../lib/ui';
 import { PaymentDetails } from './PaymentDetails';
 
 export function ThanksPage({ config }: { config: SiteConfig }) {
@@ -13,7 +13,16 @@ export function ThanksPage({ config }: { config: SiteConfig }) {
           ✓
         </span>
         <h1 className="h1">{t('thanks.title')}</h1>
-        <p className="muted-text">{last ? t('thanks.summary', { count: last.count, unit: itemsWord(last.count), phone: last.phone }) : t('thanks.summaryDefault')}</p>
+        <p className="muted-text">
+          {last
+            ? t('thanks.summary', { id: last.orderId, count: last.count, unit: itemsWord(last.count), units: last.units, phone: last.phone })
+            : t('thanks.summaryDefault')}
+        </p>
+        {last?.total != null && (
+          <p>
+            <strong>{t('cart.total', { total: formatPrice(last.total) })}</strong>
+          </p>
+        )}
       </div>
       <section className="panel">
         <h2 className="panel__title">{t('thanks.nextTitle')}</h2>

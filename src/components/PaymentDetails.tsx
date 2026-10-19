@@ -1,9 +1,10 @@
 import type { SiteConfig } from '../lib/config';
 import { t } from '../lib/i18n';
+import { formatPrice } from '../lib/ui';
 
 export type PaymentVariant = 'cart' | 'thanks' | 'faq';
 
-export function PaymentDetails({ variant, config }: { variant: PaymentVariant; config: SiteConfig | null }) {
+export function PaymentDetails({ variant, config, total }: { variant: PaymentVariant; config: SiteConfig | null; total?: number | null }) {
   const title = variant === 'faq' ? t('pay.titleFaq') : t('pay.title');
   const intro = variant === 'cart' ? t('pay.introCart') : variant === 'thanks' ? t('pay.introThanks') : t('pay.introFaq');
   const coordinators = variant === 'faq' ? [] : (config?.coordinators ?? []);
@@ -14,6 +15,11 @@ export function PaymentDetails({ variant, config }: { variant: PaymentVariant; c
         {title}
       </h2>
       <p className="muted-text">{intro}</p>
+      {typeof total === 'number' && (
+        <p>
+          <strong>{t('cart.total', { total: formatPrice(total) })}</strong>
+        </p>
+      )}
       {coordinators.map((c) => (
         <p key={c.name + c.phone}>
           {t('pay.coordinator')}: <strong>{c.name}</strong>, <a href={`tel:${c.phone.replace(/\s/g, '')}`}>{c.phone}</a>

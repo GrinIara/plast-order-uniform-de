@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
-import { useCart } from '../lib/cart';
+import { cartUnits, useCart } from '../lib/cart';
 import { t } from '../lib/i18n';
 import { useLive } from '../lib/live';
 import type { Theme } from '../lib/theme';
-import { formatDate, itemsWord } from '../lib/ui';
+import { formatDate, unitsWord } from '../lib/ui';
 
 interface Props {
   station: string | null;
@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function Layout({ station, dataDate, theme, onToggleTheme, children }: Props) {
-  const count = useCart().length;
+  const count = cartUnits(useCart());
   const live = useLive();
   return (
     <div className="shell">
@@ -34,7 +34,7 @@ export function Layout({ station, dataDate, theme, onToggleTheme, children }: Pr
           <a className="navlink" href="#/faq">
             {t('nav.faq')}
           </a>
-          <a className="cartbtn" href="#/cart" aria-label={t('nav.cartAria', { count, unit: itemsWord(count) })}>
+          <a className="cartbtn" href="#/cart" aria-label={t('nav.cartAria', { count, unit: unitsWord(count) })}>
             <span>{t('nav.cart')}</span>
             <span className="cartbtn__count">{count}</span>
           </a>
