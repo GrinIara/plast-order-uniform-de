@@ -24,7 +24,8 @@
       "quantity": "entry.1005",
       "childFirstName": "entry.1006",
       "childLastName": "entry.1007",
-      "total": "entry.1008"
+      "total": "entry.1008",
+      "nextSize": "entry.1009"
     },
     "consentValue": "Так"
   },

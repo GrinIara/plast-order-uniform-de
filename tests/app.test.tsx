@@ -126,7 +126,7 @@ describe('SPEC-2026-10-19-item-quantity', () => {
     await user.type(screen.getByLabelText('Прізвище'), 'Коваль');
     await user.type(screen.getByLabelText('Телефон'), '+49 151 2345678');
     await user.selectOptions(screen.getByLabelText('Улад'), 'УСП');
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('checkbox', { name: /Погоджуюсь/ }));
     await user.click(screen.getByRole('button', { name: 'Відправити' }));
     expect(await screen.findByText("Вкажіть ім'я дитини")).toBeTruthy();
     expect(screen.getByText('Вкажіть прізвище дитини')).toBeTruthy();

@@ -1,4 +1,4 @@
-import { removeFromCart } from '../lib/cart';
+import { removeFromCart, setNextSize } from '../lib/cart';
 import { t } from '../lib/i18n';
 import { announce } from '../lib/live';
 import type { OrderTotals, PricedLine } from '../lib/pricing';
@@ -33,6 +33,10 @@ export function CartLines({ lines, totals, locked }: Props) {
                   : t('cart.priceUnknown')}
               </div>
             </div>
+            <label className="check cartlist__next">
+              <input type="checkbox" checked={item.nextSize} disabled={locked} onChange={(e) => setNextSize(item.sku, e.target.checked)} />
+              <span>{t('cart.nextSize')}</span>
+            </label>
             <QuantityCounter sku={item.sku} name={name} size={item.size} quantity={item.quantity} disabled={locked} />
             <button
               type="button"

@@ -6,7 +6,7 @@ const variant = (sku: string, price: number | null) => ({ sku, size: 'M', stock:
 const products = (price: number): Product[] => [
   { productId: 'P1', nameUk: 'Каталожна назва', nameDe: '', category: 'c', synonyms: [], ulads: [], variants: [variant('A', price), variant('B', 24.5)] },
 ];
-const item = (sku: string, quantity: number): CartItem => ({ sku, productId: 'P1', name: 'Збережена назва', size: 'M', stock: 'in', quantity });
+const item = (sku: string, quantity: number): CartItem => ({ sku, productId: 'P1', name: 'Збережена назва', size: 'M', stock: 'in', quantity, nextSize: false });
 
 describe('SPEC-2026-10-19-item-quantity', () => {
   it('AC-19: 930 × 2 + 24,50 × 1 = 1884,5', () => {

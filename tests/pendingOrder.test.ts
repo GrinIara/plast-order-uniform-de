@@ -10,7 +10,7 @@ const config = configSchema.parse({ ...example, form: { ...example.form, action:
 const f = config.form.fields;
 const ID = '20261019-7KQX';
 const form: ContactForm = { firstName: 'О', lastName: 'К', phone: '+49 151 2345678', station: 'D', uladh: 'УСП', unit: '', consent: true, childFirstName: 'Д', childLastName: 'К' };
-const items: CartItem[] = ['A', 'B', 'C'].map((s) => ({ sku: `SKU-${s}`, productId: 'P', name: s, size: 'M', stock: 'in', quantity: 1 }));
+const items: CartItem[] = ['A', 'B', 'C'].map((s) => ({ sku: `SKU-${s}`, productId: 'P', name: s, size: 'M', stock: 'in', quantity: 1, nextSize: false }));
 const lines = resolveLines(items, []);
 
 type Call = { body: URLSearchParams; resolve: () => void; reject: () => void };
