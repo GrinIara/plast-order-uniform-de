@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { SIZE_CHARTS } from '../content/sizeCharts';
+import { chartFromHash, useHash } from '../lib/route';
 import { t } from '../lib/i18n';
 import type { SiteConfig } from '../lib/config';
 import { PaymentDetails } from './PaymentDetails';
@@ -5,6 +8,12 @@ import { PaymentDetails } from './PaymentDetails';
 const ITEMS = [1, 2, 3, 4] as const;
 
 export function FaqPage({ config }: { config: SiteConfig | null }) {
+  const target = chartFromHash(useHash());
+
+  useEffect(() => {
+    if (target) document.getElementById(`size-${target}`)?.scrollIntoView();
+  }, [target]);
+
   return (
     <div className="stack narrow">
       <div>
@@ -39,6 +48,52 @@ export function FaqPage({ config }: { config: SiteConfig | null }) {
           </ul>
         </details>
       </div>
+      <section className="stack stack--xs" aria-labelledby="sizes-title">
+        <h2 className="h2" id="sizes-title">
+          {t('faq.sizes')}
+        </h2>
+        <p className="muted">{t('faq.sizesIntro')}</p>
+        {SIZE_CHARTS.map((chart) => (
+          <details key={chart.id} className="faq" id={`size-${chart.id}`} open={chart.id === target}>
+            <summary>
+              {chart.title} <span aria-hidden="true">+</span>
+            </summary>
+            <div className="faq__body stack stack--xs">
+              {chart.notes?.map((note) => (
+                <p key={note}>{note}</p>
+              ))}
+              {chart.tables.map((table, i) => (
+                <div key={i} className="sizetable">
+                  {table.title && <h3 className="sizetable__title">{table.title}</h3>}
+                  <div className="sizetable__scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          {table.head.map((h, j) => (
+                            <th key={j} scope="col">
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {table.rows.map((row) => (
+                          <tr key={row.label}>
+                            <th scope="row">{row.label}</th>
+                            {row.values.map((v, j) => (
+                              <td key={j}>{v}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
+        ))}
+      </section>
       <PaymentDetails variant="faq" config={config} />
     </div>
   );
