@@ -165,6 +165,13 @@ h1, h2, h3, p, dl, ul { margin: 0; }
 .faq summary { min-height: 56px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-weight: 600; list-style: none; }
 .faq summary span { color: var(--muted); font-size: 20px; font-weight: 400; }
 .faq__body { padding: 0 16px 16px; text-wrap: pretty; }
+.h2 { font-size: 19px; font-weight: 700; }
+.sizetable__title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.sizetable__scroll { overflow-x: auto; }
+.sizetable table { border-collapse: collapse; font-size: 14px; white-space: nowrap; }
+.sizetable th, .sizetable td { padding: 8px 12px; border: 1px solid var(--border); text-align: center; }
+.sizetable th { background: var(--surface-2); font-weight: 600; }
+.sizetable th[scope="row"] { text-align: left; position: sticky; left: 0; }
 .coords { list-style: none; padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
 .coords li { display: flex; flex-direction: column; }
 .coords__name { font-weight: 600; }

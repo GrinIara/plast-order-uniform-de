@@ -5,6 +5,7 @@ import { announce } from '../lib/live';
 import { usePartialOrder } from '../lib/pendingOrder';
 import { categoryMark, formatDate, formatPrice } from '../lib/ui';
 import type { Product } from '../lib/types';
+import { chartIdForProduct } from '../content/sizeCharts';
 import { QuantityCounter } from './QuantityCounter';
 
 export function ProductCard({ product, tint }: { product: Product; tint: string }) {
@@ -14,6 +15,7 @@ export function ProductCard({ product, tint }: { product: Product; tint: string 
   const selected = product.variants.find((v) => v.sku === selectedSku);
   const line = selected ? cart.find((i) => i.sku === selected.sku) : undefined;
   const locked = usePartialOrder() !== null;
+  const chartId = chartIdForProduct(product.productId);
   const url = product.variants[0].sourceUrl;
   const shownVariant = selected ?? product.variants.find((v) => v.price !== null);
 
@@ -97,6 +99,11 @@ export function ProductCard({ product, tint }: { product: Product; tint: string 
             </button>
           )}
           {locked && <p className="card__note">{t('card.locked')}</p>}
+          {chartId && (
+            <a className="card__view" href={`#/faq/${chartId}`}>
+              {t('card.sizeChart')}
+            </a>
+          )}
           <a className="card__view" href={url} target="_blank" rel="noopener noreferrer">
             {t('card.view')}
           </a>
