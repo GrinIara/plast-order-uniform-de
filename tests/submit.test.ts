@@ -13,8 +13,8 @@ const products: Product[] = [
   { productId: 'UPP-CAP', nameUk: 'Пілотка', nameDe: '', category: 'c', synonyms: [], ulads: [], variants: [variant('UPP-CAP-ONE', 'one size', null)] },
 ];
 const items: CartItem[] = [
-  { sku: 'UPP-SHIRT-M', productId: 'UPP-SHIRT', name: 'Сорочка УПП', size: 'M', stock: 'in', quantity: 2 },
-  { sku: 'UPP-CAP-ONE', productId: 'UPP-CAP', name: 'Пілотка', size: 'one size', stock: 'order', quantity: 1 },
+  { sku: 'UPP-SHIRT-M', productId: 'UPP-SHIRT', name: 'Сорочка УПП', size: 'M', stock: 'in', quantity: 2, nextSize: false },
+  { sku: 'UPP-CAP-ONE', productId: 'UPP-CAP', name: 'Пілотка', size: 'one size', stock: 'order', quantity: 1, nextSize: false },
 ];
 const lines: PricedLine[] = resolveLines(items, products);
 const totals = orderTotals(lines);
@@ -67,6 +67,12 @@ describe('SPEC-2026-10-19-item-quantity', () => {
     expect(buildLinePayload(noTotal, form, lines[0], ID).has('entry.1008')).toBe(false);
   });
 
+  it('галочка «наступний розмір» надсилається в окреме поле для кожної позиції', () => {
+    expect(buildLinePayload(config, form, lines[0], ID).get(f.nextSize!)).toBe('Не брати');
+    const yes = resolveLines([{ ...items[0], nextSize: true }], products);
+    expect(buildLinePayload(config, form, yes[0], ID).get(f.nextSize!)).toBe('Взяти наступний розмір');
+  });
+
   it('AC-38: застаріле поле «order» ніколи не надсилається', () => {
     const body = buildLinePayload(config, form, lines[0], ID);
     expect(body.has(f.order!)).toBe(false);
@@ -90,8 +96,8 @@ describe('SPEC-2026-10-19-item-quantity', () => {
     expect(flat(text)).toBe(
       [
         'Замовлення: 20261019-7KQX',
-        'UPP-SHIRT-M / M — Сорочка УПП × 2 · 930 € = 1 860 €',
-        'UPP-CAP-ONE / one size — Пілотка × 1 · ціна невідома',
+        'UPP-SHIRT-M / M — Сорочка УПП × 2 · 930 € = 1 860 € · Не брати',
+        'UPP-CAP-ONE / one size — Пілотка × 1 · ціна невідома · Не брати',
         'Разом орієнтовно: 1 860 € (1 позиція без ціни)',
         "Ім'я дитини: Олена, Іван",
         'Прізвище дитини: Коваль, Коваль',

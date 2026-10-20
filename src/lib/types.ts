@@ -64,6 +64,8 @@ export interface CartItem {
   size: string;
   stock: Stock;
   quantity: number;
+  /** Якщо розміру немає в наявності: true — взяти наступний розмір, false — не брати. */
+  nextSize: boolean;
 }
 
 export const QTY_MIN = 1;

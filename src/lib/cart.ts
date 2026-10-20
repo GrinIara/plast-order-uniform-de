@@ -18,7 +18,7 @@ function read(): CartItem[] {
     if (!Array.isArray(parsed)) return [];
     return (parsed as CartItem[])
       .filter((i) => i && typeof i.sku === 'string')
-      .map((i) => ({ ...i, quantity: normalizeQuantity((i as { quantity?: unknown }).quantity) }));
+      .map((i) => ({ ...i, quantity: normalizeQuantity((i as { quantity?: unknown }).quantity), nextSize: (i as { nextSize?: unknown }).nextSize === true }));
   } catch {
     return [];
   }
@@ -39,10 +39,10 @@ export function getCart(): CartItem[] {
   return cache;
 }
 
-export function addToCart(item: Omit<CartItem, 'quantity'>): void {
+export function addToCart(item: Omit<CartItem, 'quantity' | 'nextSize'>): void {
   const items = getCart();
   if (items.some((i) => i.sku === item.sku)) return;
-  write([...items, { ...item, quantity: QTY_MIN }]);
+  write([...items, { ...item, quantity: QTY_MIN, nextSize: false }]);
 }
 
 export function setQuantity(sku: string, quantity: number): void {
@@ -52,6 +52,12 @@ export function setQuantity(sku: string, quantity: number): void {
   const next = normalizeQuantity(Number.isFinite(quantity) ? Math.round(quantity) : QTY_MIN);
   if (next === current.quantity) return;
   write(items.map((i) => (i.sku === sku ? { ...i, quantity: next } : i)));
+}
+
+export function setNextSize(sku: string, nextSize: boolean): void {
+  const items = getCart();
+  if (!items.some((i) => i.sku === sku)) return;
+  write(items.map((i) => (i.sku === sku ? { ...i, nextSize } : i)));
 }
 
 export function cartUnits(items: CartItem[]): number {

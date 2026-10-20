@@ -45,7 +45,7 @@ export async function fillContactForm(user: UserEvent) {
   await user.type(screen.getByLabelText('Прізвище дитини'), 'Коваль');
   await user.type(screen.getByLabelText('Телефон'), '+49 151 2345678');
   await user.selectOptions(screen.getByLabelText('Улад'), 'УСП');
-  await user.click(screen.getByRole('checkbox'));
+  await user.click(screen.getByRole('checkbox', { name: /Погоджуюсь/ }));
 }
 
 const SEED: Record<string, { productId: string; name: string; size: string; stock: 'in' | 'order' | 'none' }> = {

@@ -19,9 +19,11 @@ export interface ContactForm {
 export function buildCopyText(lines: PricedLine[], totals: OrderTotals, form: ContactForm, orderId: string | null): string {
   const rows = lines.map((l) => {
     const params = { sku: l.item.sku, size: l.item.size, name: l.name, quantity: l.item.quantity };
-    return l.price === null || l.lineTotal === null
-      ? t('copy.lineUnpriced', params)
-      : t('copy.line', { ...params, price: formatPrice(l.price), lineTotal: formatPrice(l.lineTotal) });
+    const row =
+      l.price === null || l.lineTotal === null
+        ? t('copy.lineUnpriced', params)
+        : t('copy.line', { ...params, price: formatPrice(l.price), lineTotal: formatPrice(l.lineTotal) });
+    return `${row} · ${t(l.item.nextSize ? 'nextSize.yes' : 'nextSize.no')}`;
   });
   if (totals.total !== null) {
     const total = formatPrice(totals.total);
@@ -79,6 +81,7 @@ export function buildLinePayload(config: SiteConfig, form: ContactForm, line: Pr
   body.set(f.quantity, String(line.item.quantity));
   body.set(f.childFirstName, form.childFirstName.trim());
   body.set(f.childLastName, form.childLastName.trim());
+  if (f.nextSize) body.set(f.nextSize, t(line.item.nextSize ? 'nextSize.yes' : 'nextSize.no'));
   if (line.lineTotal !== null && f.total) body.set(f.total, formatSumField(line.lineTotal));
   return body;
 }

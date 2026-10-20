@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { addToCart, cartUnits, clearCart, getCart, removeFromCart, resetCartCache, setQuantity } from '../src/lib/cart';
+import { addToCart, cartUnits, clearCart, getCart, removeFromCart, resetCartCache, setNextSize, setQuantity } from '../src/lib/cart';
 
 const item = { sku: 'UPP-SHIRT-M', productId: 'UPP-SHIRT', name: 'Сорочка УПП', size: 'M', stock: 'in' as const };
 
@@ -13,7 +13,17 @@ describe('кошик', () => {
   it('зберігається після «перезавантаження» (перечитування localStorage)', () => {
     addToCart(item);
     resetCartCache();
-    expect(getCart()).toEqual([{ ...item, quantity: 1 }]);
+    expect(getCart()).toEqual([{ ...item, quantity: 1, nextSize: false }]);
+  });
+
+  it('галочка «наступний розмір» зберігається після перезавантаження; стара позиція без неї — false', () => {
+    addToCart(item);
+    setNextSize(item.sku, true);
+    resetCartCache();
+    expect(getCart()[0].nextSize).toBe(true);
+    localStorage.setItem('plast-cart-v1', JSON.stringify([item]));
+    resetCartCache();
+    expect(getCart()[0].nextSize).toBe(false);
   });
 
   it('не додає дублікатів і вміє прибирати позицію', () => {

@@ -27,6 +27,7 @@ export const configSchema = z.object({
       childFirstName: z.string().min(1),
       childLastName: z.string().min(1),
       total: z.string().min(1).optional(),
+      nextSize: z.string().min(1).optional(),
     }),
     consentValue: z.string().default('Так'),
   }),
