@@ -53,7 +53,7 @@ export function ProductCard({ product, tint }: { product: Product; tint: string 
           )}
           {shownVariant?.price != null && (
             <div className="card__price">
-              <strong>{formatPrice(shownVariant.price)}</strong> <span className="muted">{t('card.priceDate', { date: formatDate(shownVariant.updatedAt) })}</span>
+              <strong>{formatPrice(shownVariant.price)}</strong> {t('card.perUnit')} <span className="muted">{t('card.priceDate', { date: formatDate(shownVariant.updatedAt) })}</span>
             </div>
           )}
         </div>

@@ -42,6 +42,7 @@
   "catalog.empty.write": "Написати координатору",
   "catalog.partial": "Частину позицій каталогу не вдалося завантажити.",
 
+  "card.perUnit": "за 1 шт.",
   "card.priceDate": "· за даними на {date}",
   "card.sizeGroup": "Розмір або колір",
   "card.sizeAria": "{size}, {status}{cart}",
