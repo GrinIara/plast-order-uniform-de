@@ -297,6 +297,6 @@ describe('SPEC-2026-10-19-item-quantity', () => {
     const summary = screen.getByText(/^Замовлення \d{8}-/).textContent!.replace(/\s/g, ' ');
     expect(summary).toMatch(/^Замовлення \d{8}-[2-9A-HJKMNP-Z]{4} · 1 позиція, 2 шт\. · координатор зателефонує на \+49 151 2345678$/);
     const total = screen.getAllByText(/Разом орієнтовно/).map((e) => e.textContent!.replace(/\s/g, ' '));
-    expect(total).toEqual(['Разом орієнтовно: 1 860 ₴']);
+    expect(total).toEqual(['Разом орієнтовно: 1 860 €']);
   });
 });

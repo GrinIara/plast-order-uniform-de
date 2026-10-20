@@ -44,11 +44,11 @@ describe('groupProducts', () => {
 });
 
 describe('formatPrice', () => {
-  it('показує гривні: ціле без копійок, дробове з двома знаками', async () => {
+  it('показує євро: ціле без копійок, дробове з двома знаками', async () => {
     const { formatPrice } = await import('../src/lib/ui');
-    expect(formatPrice(930)).toMatch(/^930\s₴$/);
-    expect(formatPrice(24.5)).toMatch(/^24,50\s₴$/);
-    expect(formatPrice(1250)).toMatch(/^1\s?250\s₴$/);
+    expect(formatPrice(930)).toMatch(/^930\s€$/);
+    expect(formatPrice(24.5)).toMatch(/^24,50\s€$/);
+    expect(formatPrice(1250)).toMatch(/^1\s?250\s€$/);
   });
 });
 

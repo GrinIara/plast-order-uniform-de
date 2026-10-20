@@ -29,10 +29,10 @@ export function formatDate(iso: string): string {
   return m ? `${m[3]}.${m[2]}.${m[1]}` : iso;
 }
 
-const priceFormat = new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH', minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const priceFormat = new Intl.NumberFormat('uk-UA', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-/** Ціна в гривнях: 930 → «930 ₴», 24.5 → «24,50 ₴». */
+/** Ціна в євро: 930 → «930 €», 24.5 → «24,50 €». */
 export function formatPrice(price: number): string {
   const text = priceFormat.format(price);
-  return Number.isInteger(price) ? text : text.replace(/[,.](\d)(?!\d)/, ',$10');
+  return `${Number.isInteger(price) ? text : text.replace(/[,.](\d)(?!\d)/, ',$10')}\u00A0€`;
 }
