@@ -26,6 +26,7 @@ export function Layout({ station, dataDate, theme, onToggleTheme, children }: Pr
       </div>
 
       <header className="header">
+        <div className="banner">{t('banner.deadline')}</div>
         <div className="header__inner">
           <a className="brand" href="#/">
             <span className="brand__name">{t('brand.name')}</span>
