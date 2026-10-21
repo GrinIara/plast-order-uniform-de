@@ -2,17 +2,16 @@ import type { SiteConfig } from '../lib/config';
 import { t } from '../lib/i18n';
 import { formatPrice } from '../lib/ui';
 
-export type PaymentVariant = 'cart' | 'thanks' | 'faq';
+export type PaymentVariant = 'cart' | 'thanks';
 
 export function PaymentDetails({ variant, config, total }: { variant: PaymentVariant; config: SiteConfig | null; total?: number | null }) {
-  const title = variant === 'faq' ? t('pay.titleFaq') : t('pay.title');
-  const intro = variant === 'cart' ? t('pay.introCart') : variant === 'thanks' ? t('pay.introThanks') : t('pay.introFaq');
-  const coordinators = variant === 'faq' ? [] : (config?.coordinators ?? []);
+  const intro = variant === 'cart' ? t('pay.introCart') : t('pay.introThanks');
+  const coordinators = config?.coordinators ?? [];
 
   return (
     <section aria-labelledby={`pay-${variant}`} className="panel">
       <h2 id={`pay-${variant}`} className="panel__title">
-        {title}
+        {t('pay.title')}
       </h2>
       <p className="muted-text">{intro}</p>
       {typeof total === 'number' && (

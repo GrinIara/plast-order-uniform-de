@@ -100,10 +100,10 @@ Terms:
 - AC-16 (US-2): The summary page shall show, on each line, the same counter as the card, following AC-3 to AC-6. · Verify: e2e — observable: changing a quantity on the summary page shows the new quantity on the product card after navigating back
 - AC-17 (US-2): WHILE a line is priced, the summary page shall show "{price} × N = {line total}" on that line. · Verify: unit — observable: "930 ₴ × 2 = 1 860 ₴"
 - AC-18 (US-2): WHILE a line is unpriced, the summary page shall show "Ціна невідома" on that line. · Verify: unit — observable: the text "Ціна невідома" on that line
-- AC-19 (US-2): WHILE at least one line is priced, the summary page shall show "Разом орієнтовно: X ₴" with X equal to the approximate total. · Verify: unit — observable: lines 930 ₴ ×2 and 24,50 ₴ ×1 give "Разом орієнтовно: 1 884,50 ₴"
+- AC-19 (US-2): WHILE at least one line is priced, the summary page shall show "Разом: X ₴" with X equal to the approximate total. · Verify: unit — observable: lines 930 ₴ ×2 and 24,50 ₴ ×1 give "Разом: 1 884,50 ₴"
 - AC-20 (US-2): WHILE at least one line is unpriced and at least one is priced, the summary page shall show "N позицій без ціни, остаточну суму повідомить координатор" below the total (N with the correct plural form). · Verify: unit — observable: "1 позиція без ціни, остаточну суму повідомить координатор"
-- AC-21 (US-2): WHILE no line is priced, the summary page shall show "Ціни невідомі, суму повідомить координатор" instead of the total. [NEEDS CLARIFICATION: OQ-4] · Verify: unit — observable: that text present and no "Разом орієнтовно"
-- AC-22 [Should] (US-2): WHILE the approximate total is shown, the summary page shall also show "Разом орієнтовно: X ₴" in the payment details block. · Verify: e2e — observable: the same amount appears inside "Куди та як платити"
+- AC-21 (US-2): WHILE no line is priced, the summary page shall show "Ціни невідомі, суму повідомить координатор" instead of the total. [NEEDS CLARIFICATION: OQ-4] · Verify: unit — observable: that text present and no "Разом"
+- AC-22 [Should] (US-2): WHILE the approximate total is shown, the summary page shall also show "Разом: X ₴" in the payment details block. · Verify: e2e — observable: the same amount appears inside "Куди та як платити"
 - AC-23 (US-2): WHEN the summary page computes line prices, it shall use the prices of the currently loaded catalog, and IF a line's SKU is not in that catalog THEN it shall treat the line as unpriced. · Verify: unit — observable: a price change in the catalog changes the shown line total; a removed SKU shows "Ціна невідома"
 - AC-24 (US-9): The summary page panel heading shall read "Позицій: N · штук: M", where N is the number of lines and M the sum of quantities. · Verify: unit — observable: "Позицій: 2 · штук: 3"
 - AC-25 (US-9): The header cart badge shall show the sum of quantities of all lines, and its accessible name shall say the number of units. · Verify: e2e — observable: badge "3" after adding M ×2 and L ×1
@@ -151,7 +151,7 @@ Terms:
 ### Thanks page (US-9)
 
 - AC-53 (US-9): WHEN the thanks page opens after a successful order, it shall show "Замовлення {id} · N {позиція|позиції|позицій}, M шт. · координатор зателефонує на {phone}". [NEEDS CLARIFICATION: OQ-9] · Verify: e2e — observable: thanks text contains the order id and both counts
-- AC-54 (US-9): WHILE the sent order had at least one priced line, the thanks page shall show "Разом орієнтовно: X ₴". · Verify: e2e — observable: the amount shown equals the summary page total
+- AC-54 (US-9): WHILE the sent order had at least one priced line, the thanks page shall show "Разом: X ₴". · Verify: e2e — observable: the amount shown equals the summary page total
 
 ### Configuration (US-10)
 
@@ -293,7 +293,7 @@ Used by "Скопіювати текст замовлення" (AC-52). Replaces
 Замовлення: 20261019-7KQX
 UPP-SHIRT-M / M — Сорочка УПП × 2 · 930 ₴ = 1 860 ₴
 UPP-CAP-ONE / one size — Пілотка × 1 · ціна невідома
-Разом орієнтовно: 1 860 ₴ (1 позиція без ціни)
+Разом: 1 860 ₴ (1 позиція без ціни)
 Ім'я дитини: Олена, Іван
 Прізвище дитини: Коваль, Коваль
 

@@ -31,7 +31,7 @@ Out of scope:
 - R4 — Summary page:
   - each line has the same counter as the card;
   - a priced line shows "{price} × N = {line total}", an unpriced line shows "Ціна невідома";
-  - "Разом орієнтовно: X ₴" appears when at least one line is priced;
+  - "Разом: X ₴" appears when at least one line is priced;
   - "N позицій без ціни, остаточну суму повідомить координатор" appears when lines are mixed (correct plural);
   - "Ціни невідомі, суму повідомить координатор" appears when no line is priced;
   - prices come from the currently loaded catalog, and a SKU missing from it counts as unpriced;
@@ -39,7 +39,7 @@ Out of scope:
   - "Прибрати" removes the line;
   - totals update in the same render as the quantity change.
   · Source: SPEC AC-16…AC-21, AC-23, AC-24, AC-26, NFR-2
-- R5 — While the approximate total is shown, the payment block on the summary page also shows "Разом орієнтовно: X ₴". The block's heading is "Оплата" since commit d81c110; the spec still calls it "Куди та як платити". · Source: SPEC AC-22 · ⚠ assumed default — confirm (D-AC22)
+- R5 — While the approximate total is shown, the payment block on the summary page also shows "Разом: X ₴". The block's heading is "Оплата" since commit d81c110; the spec still calls it "Куди та як платити". · Source: SPEC AC-22 · ⚠ assumed default — confirm (D-AC22)
 - R6 — The header badge shows the sum of quantities. Its accessible name states the number of units ("Кошик, 3 штуки"). · Source: SPEC AC-25 · wording: ⚠ assumed default — confirm (A3)
 - R7 — Submission:
   - one POST per cart line, sequential, in cart order, at most one in flight;
@@ -61,7 +61,7 @@ Out of scope:
   - browser storage holds no contact data.
   · Source: SPEC AC-43…AC-51, AC-66, NFR-4, NFR-7
 - R9 — "Скопіювати текст замовлення" copies the text in the spec's **Copy text format**. · Source: SPEC AC-52
-- R10 — The thanks page shows "Замовлення {id} · N {позиція|позиції|позицій}, M шт. · координатор зателефонує на {phone}", plus "Разом орієнтовно: X ₴" when the order had at least one priced line. · Source: SPEC AC-53, AC-54
+- R10 — The thanks page shows "Замовлення {id} · N {позиція|позиції|позицій}, M шт. · координатор зателефонує на {phone}", plus "Разом: X ₴" when the order had at least one priced line. · Source: SPEC AC-53, AC-54
 - R11 — `SITE_CONFIG.form.fields`:
   - required non-empty: `orderId`, `sku`, `itemName`, `size`, `quantity`, `childFirstName`, `childLastName`;
   - optional non-empty: `total`, `order`.
@@ -251,11 +251,11 @@ Out of scope:
     - `copy.header` "Замовлення: {id}"
     - `copy.line` "{sku} / {size} — {name} × {quantity} · {price} = {lineTotal}"
     - `copy.lineUnpriced` "{sku} / {size} — {name} × {quantity} · ціна невідома"
-    - `copy.total` "Разом орієнтовно: {total}"
-    - `copy.totalUnpriced` "Разом орієнтовно: {total} ({count} {unit} без ціни)"
+    - `copy.total` "Разом: {total}"
+    - `copy.totalUnpriced` "Разом: {total} ({count} {unit} без ціни)"
     - `copy.childFirstName` "Ім'я дитини: {value}"
     - `copy.childLastName` "Прізвище дитини: {value}"
-    - `cart.total` "Разом орієнтовно: {total}"
+    - `cart.total` "Разом: {total}"
     The existing `form.orderHeader` stays the id-less header.
   - **`tests/harness.ts`**: move the `files` map, the `posts` capture and the `fetch` stub from `tests/app.test.tsx:8-37` into exported helpers: `installFetchStub()`, `posts`, and a `fillContactForm(user)` that also fills both child fields. Each POST is recorded with its start time so that order can be asserted. Update `tests/app.test.tsx` to use it and to stop asserting `entry.555`.
 - Why: this is the contract core of the feature: the per-line rows, the shared order id, "Сума" once, resume without duplicates, and the child's name.
