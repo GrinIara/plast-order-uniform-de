@@ -3,7 +3,6 @@ import { SIZE_CHARTS } from '../content/sizeCharts';
 import { chartFromHash, useHash } from '../lib/route';
 import { t } from '../lib/i18n';
 import type { SiteConfig } from '../lib/config';
-import { PaymentDetails } from './PaymentDetails';
 
 const ITEMS = [1, 2, 3, 4] as const;
 
@@ -94,7 +93,6 @@ export function FaqPage({ config }: { config: SiteConfig | null }) {
           </details>
         ))}
       </section>
-      <PaymentDetails variant="faq" config={config} />
     </div>
   );
 }

@@ -92,15 +92,13 @@
   "cart.priceUnknown": "Ціна невідома",
   "cart.unpricedNote": "{count} {unit} без ціни, остаточну суму повідомить координатор",
   "cart.allUnpriced": "Ціни невідомі, суму повідомить координатор",
-  "cart.total": "Разом орієнтовно: {total}",
+  "cart.total": "Разом: {total}",
 
   "pay.title": "Оплата",
-  "pay.titleFaq": "Оплата",
   "pay.introCart": "Оплата готівкою і лише тоді, коли заберете замовлення в координатора. Наперед платити не потрібно. Остаточну суму повідомить координатор за вашим телефоном.",
   "pay.introThanks": "Оплата готівкою і лише тоді, коли заберете замовлення в координатора. Наперед платити не потрібно. Остаточну суму повідомить координатор за вашим телефоном.",
   "pay.copied": "Скопійовано ✓",
   "pay.coordinator": "Координатор",
-  "pay.introFaq": "Оплата готівкою і лише тоді, коли забираєте замовлення в координатора. Наперед платити не потрібно.",
 
   "form.title": "Ваші контакти",
   "form.firstName": "Ім'я",
@@ -141,8 +139,8 @@
   "copy.header": "Замовлення: {id}",
   "copy.line": "{sku} / {size} — {name} × {quantity} · {price} = {lineTotal}",
   "copy.lineUnpriced": "{sku} / {size} — {name} × {quantity} · ціна невідома",
-  "copy.total": "Разом орієнтовно: {total}",
-  "copy.totalUnpriced": "Разом орієнтовно: {total} ({count} {unit} без ціни)",
+  "copy.total": "Разом: {total}",
+  "copy.totalUnpriced": "Разом: {total} ({count} {unit} без ціни)",
   "copy.childFirstName": "Ім'я дитини: {value}",
   "copy.childLastName": "Прізвище дитини: {value}",
 
