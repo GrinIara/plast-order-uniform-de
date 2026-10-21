@@ -5,16 +5,16 @@ export function Impressum() {
       <h1>Impressum</h1>
       <p>Angaben gemäß § 5 DDG</p>
       <p>
-        [Name des Vereins / der verantwortlichen Person]
+        Blau-Gelbes Kreuz Deutsch-Ukrainischer Verein e.V.
         <br />
-        [Straße und Hausnummer]
+        Taschenmacher 2
         <br />
-        [PLZ Ort]
+        50667 Köln
       </p>
       <h2>Kontakt</h2>
-      <p>E-Mail: [E-Mail-Adresse]</p>
+      <p>E-Mail: iaroslava.nautz@gmail.com</p>
       <h2>Verantwortlich für den Inhalt</h2>
-      <p>[Name, Anschrift]</p>
+      <p>Iaroslava Nautz</p>
       <h2>Hinweis</h2>
       <p>
         Diese Seite ist ein nicht-kommerzielles Angebot zur Sammlung von Bestellwünschen für Uniformen des Plast
