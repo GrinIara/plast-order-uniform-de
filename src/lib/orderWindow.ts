@@ -69,6 +69,11 @@ export function isOrderingOpen(state: OrderWindowState): boolean {
   return state.status === 'notConfigured' || state.status === 'open';
 }
 
+/** Відправлення заблоковане, якщо вікно закрите і немає часткового замовлення для довідправлення. */
+export function isSubmitBlocked(state: OrderWindowState, hasPartial: boolean): boolean {
+  return !isOrderingOpen(state) && !hasPartial;
+}
+
 /** Один рядок журналу на кожну помилку; сирі значення — лише для консолі та CI-журналу. */
 export function describeOrderWindowErrors(errors: OrderWindowError[]): string[] {
   return errors.map((e) =>

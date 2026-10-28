@@ -3,6 +3,7 @@ import {
   berlinDate,
   describeOrderWindowErrors,
   isOrderingOpen,
+  isSubmitBlocked,
   orderWindowState,
   parseOrderWindow,
   type OrderWindow,
@@ -128,5 +129,13 @@ describe('SPEC-2026-10-28-ordering-window', () => {
     expect(getOrderWindowToday()).toBe('2026-11-05');
     recheckOrderWindow();
     expect(getOrderWindowToday()).toBe('2026-11-16');
+  });
+
+  it('AC-16/AC-21: submit is blocked outside the window unless a partial order exists', () => {
+    const closed = orderWindowState(parseOrderWindow(both), '2026-11-16');
+    const inside = orderWindowState(parseOrderWindow(both), '2026-11-05');
+    expect(isSubmitBlocked(closed, false)).toBe(true);
+    expect(isSubmitBlocked(closed, true)).toBe(false);
+    expect(isSubmitBlocked(inside, false)).toBe(false);
   });
 });

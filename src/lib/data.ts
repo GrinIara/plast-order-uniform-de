@@ -1,12 +1,14 @@
 import { buildCatalogData, groupProducts, latestUpdate } from './catalog';
 import { resolveUrl, type SiteConfig } from './config';
-import { describeOrderWindowErrors, parseOrderWindow } from './orderWindow';
+import { describeOrderWindowErrors, parseOrderWindow, type OrderWindow } from './orderWindow';
 import { createSearch, type CatalogSearch } from './search';
 import type { CatalogData, Product, Settings, Snapshot } from './types';
 
 export interface LoadedCatalog {
   products: Product[];
   settings: Settings;
+  /** order_open / order_close з settings, розібрані один раз при завантаженні. */
+  orderWindow: OrderWindow;
   search: CatalogSearch;
   errors: CatalogData['errors'];
   /** live — свіжі дані з Google; snapshot — збережена версія. */
@@ -22,18 +24,19 @@ async function fetchText(url: string): Promise<string> {
 }
 
 /** Невалідні order_open / order_close — у консоль (один раз на завантаження каталогу). */
-function reportOrderWindow(settings: Settings): void {
-  const win = parseOrderWindow(settings);
+function reportOrderWindow(win: OrderWindow): void {
   if (win.kind !== 'invalid') return;
   for (const line of describeOrderWindowErrors(win.errors)) console.error(line);
 }
 
 function assemble(data: CatalogData, source: 'live' | 'snapshot', dataDate: string | null): LoadedCatalog {
   const products = groupProducts(data.rows);
-  reportOrderWindow(data.settings);
+  const orderWindow = parseOrderWindow(data.settings);
+  reportOrderWindow(orderWindow);
   return {
     products,
     settings: data.settings,
+    orderWindow,
     search: createSearch(products, data.synonymGroups),
     errors: data.errors,
     source,

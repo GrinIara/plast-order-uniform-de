@@ -4,7 +4,7 @@ import type { SiteConfig } from '../lib/config';
 import { t } from '../lib/i18n';
 import { setLastOrder } from '../lib/lastOrder';
 import { announce } from '../lib/live';
-import { isOrderingOpen, orderWindowState, type OrderWindow } from '../lib/orderWindow';
+import { isSubmitBlocked, orderWindowState, type OrderWindow } from '../lib/orderWindow';
 import { getOrderWindowToday, recheckOrderWindow, useOrderWindowToday } from '../lib/orderWindowClock';
 import { createOrderId } from '../lib/orderId';
 import { clearPendingOrder, countSent, getPendingOrder, markLineSent, partialStatus, startPendingOrder, usePartialOrder } from '../lib/pendingOrder';
@@ -85,7 +85,7 @@ export function OrderForm({ config, orderWindow, lines, totals }: Props) {
   const partial = usePartialOrder();
   const today = useOrderWindowToday();
   const state = orderWindowState(orderWindow, today);
-  const windowBlocked = !isOrderingOpen(state) && partial === null;
+  const windowBlocked = isSubmitBlocked(state, partial !== null);
   const reason = windowBlocked ? orderWindowText(state) : null;
 
   const errors = validateForm(form);
@@ -126,7 +126,7 @@ export function OrderForm({ config, orderWindow, lines, totals }: Props) {
     if (!sendingRef.current) {
       recheckOrderWindow();
       const now = orderWindowState(orderWindow, getOrderWindowToday());
-      if (!isOrderingOpen(now) && partialStatus(getCart(), getPendingOrder()) === null) {
+      if (isSubmitBlocked(now, partialStatus(getCart(), getPendingOrder()) !== null)) {
         announce(orderWindowText(now) ?? '');
         return;
       }

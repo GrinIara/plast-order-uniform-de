@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { loadConfig, type SiteConfig } from './lib/config';
 import { loadCatalog, type LoadedCatalog } from './lib/data';
 import { t } from './lib/i18n';
-import { parseOrderWindow } from './lib/orderWindow';
 import { recheckOrderWindow } from './lib/orderWindowClock';
 import { useRoute } from './lib/route';
 import { useTheme } from './lib/theme';
@@ -58,7 +57,7 @@ export function App() {
   }, [route]);
 
   const { status, config, catalog, fatal } = state;
-  const orderWindow = status === 'ready' && catalog ? parseOrderWindow(catalog.settings) : null;
+  const orderWindow = status === 'ready' && catalog ? catalog.orderWindow : null;
   const needsData = route === 'cart' || route === 'thanks';
 
   let content;
