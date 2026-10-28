@@ -1,5 +1,6 @@
 import { buildCatalogData, groupProducts, latestUpdate } from './catalog';
 import { resolveUrl, type SiteConfig } from './config';
+import { describeOrderWindowErrors, parseOrderWindow } from './orderWindow';
 import { createSearch, type CatalogSearch } from './search';
 import type { CatalogData, Product, Settings, Snapshot } from './types';
 
@@ -20,8 +21,16 @@ async function fetchText(url: string): Promise<string> {
   return res.text();
 }
 
+/** Невалідні order_open / order_close — у консоль (один раз на завантаження каталогу). */
+function reportOrderWindow(settings: Settings): void {
+  const win = parseOrderWindow(settings);
+  if (win.kind !== 'invalid') return;
+  for (const line of describeOrderWindowErrors(win.errors)) console.error(line);
+}
+
 function assemble(data: CatalogData, source: 'live' | 'snapshot', dataDate: string | null): LoadedCatalog {
   const products = groupProducts(data.rows);
+  reportOrderWindow(data.settings);
   return {
     products,
     settings: data.settings,

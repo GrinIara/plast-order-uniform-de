@@ -91,8 +91,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh issue create --repo "$GITHUB_REPOSITORY" \
-            --title "Каталог: некоректні рядки ($(date +%F))" \
-            --body "$(printf 'Перевірка таблиці каталогу знайшла помилки. Сайт працює, але ці рядки пропущено.\n\n```\n%s\n```\n' "$(cat validate.log)")"
+            --title "Таблиця каталогу: помилки перевірки ($(date +%F))" \
+            --body "$(printf 'Щоденна перевірка таблиці каталогу знайшла помилки: некоректні рядки каталогу або дати вікна замовлень (order_open / order_close у листі settings). Деталі в журналі нижче.\n\n```\n%s\n```\n' "$(cat validate.log)")"
       - name: Keep scheduled workflow enabled
         if: always() && github.event_name == 'schedule'
         env:

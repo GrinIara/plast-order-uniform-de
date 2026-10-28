@@ -1,4 +1,5 @@
 import { t } from './i18n';
+import type { OrderWindowState } from './orderWindow';
 
 /** Відмінок слова «позиція» для числа. */
 export function itemsWord(n: number): string {
@@ -27,6 +28,23 @@ export function categoryMark(category: string): string {
 export function formatDate(iso: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
   return m ? `${m[3]}.${m[2]}.${m[1]}` : iso;
+}
+
+/** Текст про вікно замовлень для банера й підказки; null — вікно не налаштоване. Дати лише з розібраного значення. */
+export function orderWindowText(state: OrderWindowState): string | null {
+  switch (state.status) {
+    case 'notConfigured':
+      return null;
+    case 'open':
+      if (state.start && state.end) return t('window.open', { start: formatDate(state.start), end: formatDate(state.end) });
+      if (state.end) return t('window.openUntil', { end: formatDate(state.end) });
+      return t('window.openFrom', { start: formatDate(state.start ?? '') });
+    case 'beforeStart':
+      return t('window.beforeStart', { start: formatDate(state.start) });
+    case 'afterEnd':
+    case 'invalid':
+      return t('window.closed');
+  }
 }
 
 const priceFormat = new Intl.NumberFormat('uk-UA', { minimumFractionDigits: 0, maximumFractionDigits: 2 });

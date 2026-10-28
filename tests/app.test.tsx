@@ -1,10 +1,13 @@
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { act } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/App';
 import { clearCart, resetCartCache } from '../src/lib/cart';
+import { buildCatalogData } from '../src/lib/catalog';
+import { recheckOrderWindow, resetOrderWindowClock } from '../src/lib/orderWindowClock';
 import { resetPendingOrderCache } from '../src/lib/pendingOrder';
-import { fillContactForm, installFetchStub, posts, seedCart } from './harness';
+import { fillContactForm, files, installFetchStub, overrideFiles, posts, restoreFiles, seedCart } from './harness';
 
 beforeEach(() => {
   window.location.hash = '#/';
@@ -298,5 +301,208 @@ describe('SPEC-2026-10-19-item-quantity', () => {
     expect(summary).toMatch(/^Замовлення \d{8}-[2-9A-HJKMNP-Z]{4} · 1 позиція, 2 шт\. · координатор зателефонує на \+49 151 2345678$/);
     const total = screen.getAllByText(/Разом/).map((e) => e.textContent!.replace(/\s/g, ' '));
     expect(total).toEqual(['Разом: 1 860 €']);
+  });
+});
+
+describe('SPEC-2026-10-28-ordering-window', () => {
+  const CLOSED = 'Прийом замовлень закрито';
+  const WINDOW = { order_open: '2026-11-01', order_close: '2026-11-15' };
+  const header = () => within(screen.getByRole('banner'));
+  const liveRegion = () => document.querySelector('[aria-live="polite"]')!.textContent;
+
+  function setNow(iso: string) {
+    vi.setSystemTime(new Date(iso));
+  }
+  function withSettings(values: Record<string, string>) {
+    const rows = Object.entries(values).map(([k, v]) => `${k},${v}`);
+    overrideFiles({ 'sample/settings.csv': `${files['sample/settings.csv']}\n${rows.join('\n')}\n` });
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    setNow('2026-11-05T11:00:00Z');
+    resetOrderWindowClock();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    restoreFiles();
+    vi.restoreAllMocks();
+  });
+
+  it('AC-7, AC-13, AC-14: банер зі вікном на кожній сторінці, role=status, старого тексту немає', async () => {
+    withSettings(WINDOW);
+    seedCart(['UPP-CAP-ONE']);
+    render(<App />);
+    const text = 'Відсилайте замовлення від 01.11.2026 і до 15.11.2026';
+    expect(await header().findByText(text)).toBeTruthy();
+    expect(header().getByText(text).getAttribute('role')).toBe('status');
+    expect(screen.queryByText(/Замовлення приймаємо до 26 жовтня/)).toBeNull();
+    window.location.hash = '#/cart';
+    await screen.findByText('Позицій: 1 · штук: 1');
+    expect(header().getByText(text)).toBeTruthy();
+    window.location.hash = '#/faq';
+    await waitFor(() => expect(screen.queryByText('Позицій: 1 · штук: 1')).toBeNull());
+    expect(header().getByText(text)).toBeTruthy();
+  });
+
+  it('AC-8, AC-3: без налаштувань банера немає, замовлення відправляється', async () => {
+    const user = userEvent.setup();
+    await openCartWithThreeLines();
+    expect(header().queryByText(/Відсилайте|Замовлення відкриються|Прийом замовлень/)).toBeNull();
+    await fillContactForm(user);
+    await user.click(screen.getByRole('button', { name: 'Відправити' }));
+    expect(await screen.findByText(/Дякуємо! Замовлення відправлено/)).toBeTruthy();
+    expect(posts).toHaveLength(3);
+  });
+
+  it('AC-12: під час завантаження і при помилці завантаження банера немає', async () => {
+    withSettings(WINDOW);
+    render(<App />);
+    expect(header().queryByText(/Відсилайте|Прийом замовлень/)).toBeNull();
+    expect(await header().findByText(/Відсилайте/)).toBeTruthy();
+    cleanup();
+    overrideFiles({ 'sample/catalog.csv': null, 'sample/synonyms.csv': null, 'sample/settings.csv': null });
+    render(<App />);
+    await screen.findByText('Каталог зараз недоступний');
+    expect(header().queryByText(/Відсилайте|Замовлення відкриються|Прийом замовлень/)).toBeNull();
+  });
+
+  it('AC-6: коли Google недоступний, вікно береться зі знімка', async () => {
+    withSettings(WINDOW);
+    const data = buildCatalogData(files['sample/catalog.csv'], files['sample/synonyms.csv'], files['sample/settings.csv']);
+    const snapshot = { generatedAt: '2026-11-01T00:00:00Z', rows: data.rows, synonymGroups: data.synonymGroups, settings: data.settings };
+    overrideFiles({ 'sample/settings.csv': null, 'catalog.json': JSON.stringify(snapshot) });
+    render(<App />);
+    expect(await header().findByText('Відсилайте замовлення від 01.11.2026 і до 15.11.2026')).toBeTruthy();
+  });
+
+  it('AC-5: некоректна дата потрапляє в console.error з ключем і значенням', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    withSettings({ order_close: '2026-11-1x' });
+    render(<App />);
+    expect(await header().findByText(CLOSED)).toBeTruthy();
+    const lines = error.mock.calls.map((c) => String(c[0]));
+    expect(lines.some((l) => l.includes('order_close') && l.includes('2026-11-1x'))).toBe(true);
+  });
+
+  it('AC-15, AC-16, AC-17, AC-18, AC-19: після завершення кошик працює, відправити заблоковано з причиною', async () => {
+    const user = userEvent.setup();
+    setNow('2026-11-16T11:00:00Z');
+    resetOrderWindowClock();
+    withSettings(WINDOW);
+    render(<App />);
+    const cap = (await screen.findByRole('heading', { name: 'Пілотка' })).closest('article')!;
+    await user.click(within(cap).getByRole('button', { name: 'Додати до замовлення' }));
+    expect(screen.getByRole('link', { name: /Кошик/ }).textContent).toContain('1');
+    window.location.hash = '#/cart';
+    await screen.findByText('Позицій: 1 · штук: 1');
+    await fillContactForm(user);
+
+    const submit = screen.getByRole('button', { name: 'Відправити', description: CLOSED });
+    expect(submit.getAttribute('aria-disabled')).toBe('true');
+    expect(screen.queryByText(/Заповніть усі обов/)).toBeNull();
+    const cartBefore = localStorage.getItem('plast-cart-v1');
+
+    await user.click(submit);
+    expect(posts).toHaveLength(0);
+    expect(localStorage.getItem('plast-cart-v1')).toBe(cartBefore);
+    expect(screen.queryByText(/Дякуємо/)).toBeNull();
+    expect(liveRegion()).toBe(CLOSED);
+  });
+
+  it('AC-18, AC-19: порожня форма поза вікном не показує помилок полів', async () => {
+    const user = userEvent.setup();
+    setNow('2026-11-16T11:00:00Z');
+    resetOrderWindowClock();
+    withSettings(WINDOW);
+    seedCart(['UPP-CAP-ONE']);
+    window.location.hash = '#/cart';
+    render(<App />);
+    await screen.findByText('Позицій: 1 · штук: 1');
+    await user.click(screen.getByRole('button', { name: 'Відправити' }));
+    expect(screen.queryByText("Вкажіть ім'я")).toBeNull();
+    expect(liveRegion()).toBe(CLOSED);
+    expect(posts).toHaveLength(0);
+  });
+
+  it('AC-9: до початку банер і підказка — «Замовлення відкриються»', async () => {
+    setNow('2026-10-28T11:00:00Z');
+    resetOrderWindowClock();
+    withSettings({ order_open: '2026-11-01' });
+    seedCart(['UPP-CAP-ONE']);
+    window.location.hash = '#/cart';
+    render(<App />);
+    await screen.findByText('Позицій: 1 · штук: 1');
+    expect(header().getByText('Замовлення відкриються 01.11.2026')).toBeTruthy();
+    expect(screen.getAllByText('Замовлення відкриються 01.11.2026')).toHaveLength(2);
+  });
+
+  it('AC-20: дата перевіряється на момент кліку', async () => {
+    const user = userEvent.setup();
+    setNow('2026-11-15T11:00:00Z');
+    resetOrderWindowClock();
+    withSettings(WINDOW);
+    await openCartWithThreeLines();
+    expect(header().getByText(/і до 15.11.2026/)).toBeTruthy();
+    await fillContactForm(user);
+
+    setNow('2026-11-15T23:01:00Z');
+    await user.click(screen.getByRole('button', { name: 'Відправити' }));
+    expect(posts).toHaveLength(0);
+    expect(header().getByText(CLOSED)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Відправити', description: CLOSED })).toBeTruthy();
+  });
+
+  it('AC-21: частково відправлене замовлення можна завершити після закриття', async () => {
+    const user = userEvent.setup();
+    withSettings(WINDOW);
+    installFetchStub(failAt(2));
+    await openCartWithThreeLines();
+    await fillContactForm(user);
+    await user.click(screen.getByRole('button', { name: 'Відправити' }));
+    const alert = await screen.findByRole('alert');
+    const id = /Номер замовлення: (\d{8}-[0-9A-Z]{4})/.exec(alert.textContent ?? '')![1];
+
+    setNow('2026-11-16T11:00:00Z');
+    installFetchStub();
+    await user.click(within(alert).getByRole('button', { name: 'Спробувати ще' }));
+    expect(await screen.findByText(/Дякуємо! Замовлення відправлено/)).toBeTruthy();
+    expect(posts.map((p) => p.body.get('entry.1002'))).toEqual(['UPP-SHIRT-M', 'UPP-CAP-ONE']);
+    expect(posts.every((p) => p.body.get('entry.1001') === id)).toBe(true);
+  });
+
+  it('AC-22: відправлення, розпочате у вікні, завершується, хоч вікно закрилося посеред', async () => {
+    const user = userEvent.setup();
+    withSettings(WINDOW);
+    installFetchStub((index) => {
+      if (index === 2) setNow('2026-11-16T11:00:00Z');
+      return new Response('');
+    });
+    await openCartWithThreeLines();
+    await fillContactForm(user);
+    await user.click(screen.getByRole('button', { name: 'Відправити' }));
+    expect(await screen.findByText(/Дякуємо! Замовлення відправлено/)).toBeTruthy();
+    expect(posts).toHaveLength(3);
+  });
+
+  it('E14: збій на першій позиції, потім вікно закрилось — «Спробувати ще» вимкнено', async () => {
+    const user = userEvent.setup();
+    withSettings(WINDOW);
+    installFetchStub(failAt(1));
+    await openCartWithThreeLines();
+    await fillContactForm(user);
+    await user.click(screen.getByRole('button', { name: 'Відправити' }));
+    const alert = await screen.findByRole('alert');
+    const retry = within(alert).getByRole('button', { name: 'Спробувати ще' });
+    expect(retry.getAttribute('aria-disabled')).toBeNull();
+
+    setNow('2026-11-16T11:00:00Z');
+    act(() => recheckOrderWindow());
+    expect(retry.getAttribute('aria-disabled')).toBe('true');
+    const sent = posts.length;
+    await user.click(retry);
+    expect(posts).toHaveLength(sent);
+    expect(liveRegion()).toBe(CLOSED);
   });
 });

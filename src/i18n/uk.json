@@ -15,7 +15,11 @@
   "plural.unit.few": "штуки",
   "plural.unit.many": "штук",
 
-  "banner.deadline": "⚠️ УВАГА! Замовлення приймаємо до 26 жовтня",
+  "window.open": "Відсилайте замовлення від {start} і до {end}",
+  "window.openUntil": "Відсилайте замовлення до {end}",
+  "window.openFrom": "Відсилайте замовлення від {start}",
+  "window.beforeStart": "Замовлення відкриються {start}",
+  "window.closed": "Прийом замовлень закрито",
   "nav.faq": "Часті питання",
   "nav.cart": "Кошик",
   "nav.cartAria": "Кошик, {count} {unit}",

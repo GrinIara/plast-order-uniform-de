@@ -4,12 +4,15 @@ import type { SiteConfig } from '../lib/config';
 import { t } from '../lib/i18n';
 import { setLastOrder } from '../lib/lastOrder';
 import { announce } from '../lib/live';
+import { isOrderingOpen, orderWindowState, type OrderWindow } from '../lib/orderWindow';
+import { getOrderWindowToday, recheckOrderWindow, useOrderWindowToday } from '../lib/orderWindowClock';
 import { createOrderId } from '../lib/orderId';
-import { clearPendingOrder, countSent, getPendingOrder, markLineSent, startPendingOrder, usePartialOrder } from '../lib/pendingOrder';
+import { clearPendingOrder, countSent, getPendingOrder, markLineSent, partialStatus, startPendingOrder, usePartialOrder } from '../lib/pendingOrder';
 import type { OrderTotals, PricedLine } from '../lib/pricing';
 import { navigate } from '../lib/route';
 import { buildCopyText, isValidPhone, sendOrder, validateForm, type ContactForm } from '../lib/submit';
 import { ULADS } from '../lib/types';
+import { orderWindowText } from '../lib/ui';
 
 type Field = keyof ContactForm;
 type TextKey = 'firstName' | 'lastName' | 'station' | 'childFirstName' | 'childLastName';
@@ -54,11 +57,12 @@ function TextField({ name, label, value, error, disabled, describedBy, autoCompl
 
 interface Props {
   config: SiteConfig;
+  orderWindow: OrderWindow;
   lines: PricedLine[];
   totals: OrderTotals;
 }
 
-export function OrderForm({ config, lines, totals }: Props) {
+export function OrderForm({ config, orderWindow, lines, totals }: Props) {
   const [form, setForm] = useState<ContactForm>({
     firstName: '',
     lastName: '',
@@ -79,6 +83,10 @@ export function OrderForm({ config, lines, totals }: Props) {
   const [copied, setCopied] = useState(false);
   const sendingRef = useRef(false);
   const partial = usePartialOrder();
+  const today = useOrderWindowToday();
+  const state = orderWindowState(orderWindow, today);
+  const windowBlocked = !isOrderingOpen(state) && partial === null;
+  const reason = windowBlocked ? orderWindowText(state) : null;
 
   const errors = validateForm(form);
   const valid = Object.keys(errors).length === 0;
@@ -115,6 +123,14 @@ export function OrderForm({ config, lines, totals }: Props) {
 
   async function onSubmit(e?: FormEvent) {
     e?.preventDefault();
+    if (!sendingRef.current) {
+      recheckOrderWindow();
+      const now = orderWindowState(orderWindow, getOrderWindowToday());
+      if (!isOrderingOpen(now) && partialStatus(getCart(), getPendingOrder()) === null) {
+        announce(orderWindowText(now) ?? '');
+        return;
+      }
+    }
     if (!valid || sendingRef.current) {
       setTried(true);
       announce(t('live.checkFields'));
@@ -163,6 +179,8 @@ export function OrderForm({ config, lines, totals }: Props) {
   }
 
   const pending = getPendingOrder();
+  const off = !valid || sending || windowBlocked;
+  const showHint = !sending && (reason !== null || !valid);
   const showAlert = !sending && (failed || partial !== null);
 
   return (
@@ -255,7 +273,12 @@ export function OrderForm({ config, lines, totals }: Props) {
             {t('form.partialError', { sent: countSent(getCart(), pending), total: lines.length, id: pending.orderId })}
           </div>
           <div className="row row--sm">
-            <button type="submit" className="btn btn--danger">
+            <button
+              type="submit"
+              className={`btn btn--danger${windowBlocked ? ' is-off' : ''}`}
+              aria-disabled={windowBlocked ? true : undefined}
+              aria-describedby={windowBlocked ? 'f-submit-hint' : undefined}
+            >
               {t('form.sendError.retry')}
             </button>
             <button type="button" className="btn btn--outline" onClick={() => void copyOrder()}>
@@ -265,10 +288,19 @@ export function OrderForm({ config, lines, totals }: Props) {
         </div>
       )}
 
-      <button type="submit" className={`btn btn--primary btn--xl${valid && !sending ? '' : ' is-off'}`} aria-disabled={!valid || sending}>
+      <button
+        type="submit"
+        className={`btn btn--primary btn--xl${off ? ' is-off' : ''}`}
+        aria-disabled={off}
+        aria-describedby={showHint ? 'f-submit-hint' : undefined}
+      >
         {sending ? t('form.sendingProgress', { sent: progress, total: lines.length }) : t('form.submit')}
       </button>
-      {!valid && !sending && <span className="hint">{t('form.hint')}</span>}
+      {showHint && (
+        <span id="f-submit-hint" className="hint">
+          {reason ?? t('form.hint')}
+        </span>
+      )}
     </form>
   );
 }
