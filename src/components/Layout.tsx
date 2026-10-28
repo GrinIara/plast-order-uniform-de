@@ -2,20 +2,25 @@ import type { ReactNode } from 'react';
 import { cartUnits, useCart } from '../lib/cart';
 import { t } from '../lib/i18n';
 import { useLive } from '../lib/live';
+import { orderWindowState, type OrderWindow } from '../lib/orderWindow';
+import { useOrderWindowToday } from '../lib/orderWindowClock';
 import type { Theme } from '../lib/theme';
-import { formatDate, unitsWord } from '../lib/ui';
+import { formatDate, orderWindowText, unitsWord } from '../lib/ui';
 
 interface Props {
   station: string | null;
   dataDate: string | null;
+  orderWindow: OrderWindow | null;
   theme: Theme;
   onToggleTheme: () => void;
   children: ReactNode;
 }
 
-export function Layout({ station, dataDate, theme, onToggleTheme, children }: Props) {
+export function Layout({ station, dataDate, orderWindow, theme, onToggleTheme, children }: Props) {
   const count = cartUnits(useCart());
   const live = useLive();
+  const today = useOrderWindowToday();
+  const bannerText = orderWindow ? orderWindowText(orderWindowState(orderWindow, today)) : null;
   return (
     <div className="shell">
       <a className="skip-link" href="#main">
@@ -26,7 +31,11 @@ export function Layout({ station, dataDate, theme, onToggleTheme, children }: Pr
       </div>
 
       <header className="header">
-        <div className="banner">{t('banner.deadline')}</div>
+        {bannerText !== null && (
+          <div className="banner" role="status">
+            {bannerText}
+          </div>
+        )}
         <div className="header__inner">
           <a className="brand" href="#/">
             <span className="brand__name">{t('brand.name')}</span>

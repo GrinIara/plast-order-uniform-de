@@ -1,5 +1,6 @@
 import { useCart } from '../lib/cart';
 import { t } from '../lib/i18n';
+import { parseOrderWindow } from '../lib/orderWindow';
 import { usePartialOrder } from '../lib/pendingOrder';
 import { orderTotals, resolveLines } from '../lib/pricing';
 import type { SiteConfig } from '../lib/config';
@@ -51,7 +52,7 @@ export function CartPage({ config, catalog }: { config: SiteConfig; catalog: Loa
           <PaymentDetails variant="cart" config={config} total={totals.total} />
         </div>
 
-        <OrderForm config={config} lines={lines} totals={totals} />
+        <OrderForm config={config} orderWindow={parseOrderWindow(catalog.settings)} lines={lines} totals={totals} />
       </div>
     </div>
   );

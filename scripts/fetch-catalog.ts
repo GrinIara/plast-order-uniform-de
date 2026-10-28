@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { buildCatalogData } from '../src/lib/catalog';
 import { configSchema } from '../src/lib/config';
+import { describeOrderWindowErrors, parseOrderWindow } from '../src/lib/orderWindow';
 import type { Snapshot } from '../src/lib/types';
 
 /**
@@ -26,9 +27,14 @@ try {
   const data = buildCatalogData(catalog, synonyms, settings);
 
   for (const e of data.errors) console.warn(`catalog, рядок ${e.row}: ${e.message}`);
+
+  const win = parseOrderWindow(data.settings);
+  const windowErrors = win.kind === 'invalid' ? describeOrderWindowErrors(win.errors) : [];
+  for (const line of windowErrors) (strict ? console.error : console.warn)(line);
+
   if (data.rows.length === 0) throw new Error('У каталозі немає жодного коректного рядка');
-  if (strict && data.errors.length > 0) {
-    console.error(`Знайдено некоректних рядків: ${data.errors.length}`);
+  if (strict && (data.errors.length > 0 || windowErrors.length > 0)) {
+    console.error(`Знайдено помилок: рядків ${data.errors.length}, налаштувань вікна ${windowErrors.length}`);
     process.exit(1);
   }
 

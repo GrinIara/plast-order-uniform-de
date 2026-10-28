@@ -13,6 +13,21 @@ export const files: Record<string, string> = {
   'sample/settings.csv': readFileSync('public/sample/settings.csv', 'utf8'),
 };
 
+const originalFiles = { ...files };
+
+/** Підміняє файли заглушки: рядок задає вміст, null видаляє файл (404). Повертається `restoreFiles`. */
+export function overrideFiles(patch: Record<string, string | null>): void {
+  for (const [path, content] of Object.entries(patch)) {
+    if (content === null) delete files[path];
+    else files[path] = content;
+  }
+}
+
+export function restoreFiles(): void {
+  for (const key of Object.keys(files)) delete files[key];
+  Object.assign(files, originalFiles);
+}
+
 export interface Post {
   url: string;
   body: URLSearchParams;
